@@ -18,8 +18,6 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Coral80
 )
 
-// Paleta fixa (sem "dynamic color" do Android 12+): o app fica igual em qualquer aparelho
-// e as duas pessoas da dupla trabalham com as mesmas cores.
 @Composable
 fun DailyPuzzleTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

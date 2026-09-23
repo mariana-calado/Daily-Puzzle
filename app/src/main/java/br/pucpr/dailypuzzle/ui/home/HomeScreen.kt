@@ -28,19 +28,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.theme.DailyPuzzleTheme
 
-/**
- * Tela inicial. Ela não conhece navegação: recebe funções (onGameClick, onStatsClick)
- * e quem decide para onde ir é o NavGraph. Isso deixa a tela fácil de testar e de visualizar
- * no Preview.
- */
 @Composable
 fun HomeScreen(
     onGameClick: (Game) -> Unit,
     onStatsClick: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
-    // Lê o StateFlow do ViewModel. "by" faz uiState ser o valor atual, e a tela
-    // se redesenha sozinha quando esse valor muda.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     HomeContent(
@@ -50,10 +43,6 @@ fun HomeScreen(
     )
 }
 
-/**
- * A parte visual pura: recebe o estado pronto e só desenha. Como não depende do ViewModel,
- * dá para mostrar no Preview do Android Studio.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeContent(
@@ -71,7 +60,6 @@ private fun HomeContent(
             )
         }
     ) { innerPadding ->
-        // Grid de 2 colunas. "Lazy" = só monta os cards visíveis na tela.
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(16.dp),
@@ -117,8 +105,6 @@ private fun GameCard(game: Game, onClick: () -> Unit) {
     }
 }
 
-// Ícone de cada card. Fica aqui (e não no enum Game) para o arquivo de contrato
-// da Fase 0 não precisar mudar quando a Home mudar de visual.
 private fun emojiFor(game: Game): String = when (game) {
     Game.TERMO -> "🟩"
     Game.CACA_PALAVRAS -> "🔎"
