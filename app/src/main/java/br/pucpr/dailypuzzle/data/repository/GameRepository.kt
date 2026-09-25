@@ -19,49 +19,72 @@ class GameRepository @Inject constructor(
     fun observeTodayProgress(): Flow<List<GameProgressEntity>> =
         progressDao.observeByDate(DateUtils.today())
 
+    fun observeProgressSince(since: String): Flow<List<GameProgressEntity>> =
+        progressDao.observeSince(since)
+
     fun observeStats(): Flow<List<GameStatsEntity>> = statsDao.observeAll()
 
-    fun observeHistory(game: Game): Flow<List<GameProgressEntity>> =
-        progressDao.observeHistory(game)
+    suspend fun getProgress(game: Game, date: String): GameProgressEntity? =
+        progressDao.getByGameAndDate(game, date)
 
     suspend fun getTodayProgress(game: Game): GameProgressEntity? =
-        progressDao.getByGameAndDate(game, DateUtils.today())
-
-    suspend fun playedToday(game: Game): Boolean = getTodayProgress(game) != null
+        getProgress(game, DateUtils.today())
 
     suspend fun getStats(game: Game): GameStatsEntity? = statsDao.getByGame(game)
 
-    suspend fun saveResult(game: Game, won: Boolean, attempts: Int) {
-        val today = DateUtils.today()
-        if (progressDao.getByGameAndDate(game, today) != null) return
+    suspend fun saveResult(
+        game: Game,
+        won: Boolean,
+        attempts: Int,
+        date: String = DateUtils.today()
+    ) {
+        if (progressDao.getByGameAndDate(game, date) != null) return
 
         progressDao.insert(
             GameProgressEntity(
                 gameId = game,
-                date = today,
+                date = date,
                 completed = true,
                 won = won,
                 attempts = attempts
             )
         )
-        updateStats(game, won)
+        recomputeStats(game)
     }
 
-    private suspend fun updateStats(game: Game, won: Boolean) {
-        val current = statsDao.getByGame(game) ?: GameStatsEntity(gameId = game)
-        val wonYesterday = progressDao.getByGameAndDate(game, DateUtils.yesterday())?.won == true
-        val newStreak = when {
-            !won -> 0
-            wonYesterday -> current.currentStreak + 1
-            else -> 1
+    private suspend fun recomputeStats(game: Game) {
+        val history = progressDao.getAllForGame(game)
+        val wonDates = history.filter { it.won }.map { it.date }.toSet()
+
+        val today = DateUtils.today()
+        val wonToday = today in wonDates
+        val lostToday = history.any { it.date == today } && !wonToday
+
+        var currentStreak = 0
+        if (!lostToday) {
+            var step = if (wonToday) 0 else 1
+            while (DateUtils.daysAgo(step) in wonDates) {
+                currentStreak++
+                step++
+            }
+        }
+
+        var bestStreak = 0
+        var run = 0
+        var previous: String? = null
+        for (date in wonDates.sorted()) {
+            run = if (previous != null && DateUtils.nextDay(previous) == date) run + 1 else 1
+            bestStreak = maxOf(bestStreak, run)
+            previous = date
         }
 
         statsDao.upsert(
-            current.copy(
-                currentStreak = newStreak,
-                bestStreak = maxOf(current.bestStreak, newStreak),
-                totalPlayed = current.totalPlayed + 1,
-                totalWon = current.totalWon + if (won) 1 else 0
+            GameStatsEntity(
+                gameId = game,
+                currentStreak = currentStreak,
+                bestStreak = bestStreak,
+                totalPlayed = history.size,
+                totalWon = history.count { it.won }
             )
         )
     }

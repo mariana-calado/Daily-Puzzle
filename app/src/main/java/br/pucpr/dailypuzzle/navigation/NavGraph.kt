@@ -11,6 +11,15 @@ import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.EmBreveScreen
 import br.pucpr.dailypuzzle.ui.games.cacapalavras.CacaPalavrasScreen
 import br.pucpr.dailypuzzle.ui.home.HomeScreen
+import br.pucpr.dailypuzzle.ui.result.ResultScreen
+import br.pucpr.dailypuzzle.ui.stats.StatsScreen
+
+private fun dateArgument() = listOf(
+    navArgument(Routes.ARG_DATE) {
+        type = NavType.StringType
+        defaultValue = ""
+    }
+)
 
 @Composable
 fun DailyPuzzleNavGraph(
@@ -27,39 +36,55 @@ fun DailyPuzzleNavGraph(
             )
         }
 
-        composable(Routes.CACA_PALAVRAS) {
+        composable(
+            route = Routes.pattern(Game.CACA_PALAVRAS),
+            arguments = dateArgument()
+        ) { entry ->
+            val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
             CacaPalavrasScreen(
                 onBack = { navController.popBackStack() },
-                onFinished = {
-                    navController.navigate(Routes.result(Game.CACA_PALAVRAS)) {
+                onShowResult = {
+                    navController.navigate(Routes.result(Game.CACA_PALAVRAS, date)) {
                         popUpTo(Routes.HOME)
                     }
                 }
             )
         }
 
-        composable(Routes.TERMO) {
+        composable(
+            route = Routes.pattern(Game.TERMO),
+            arguments = dateArgument()
+        ) {
             EmBreveScreen(
                 title = Game.TERMO.title,
                 onBack = { navController.popBackStack() }
             )
         }
 
-        composable(Routes.HASHTAG) {
+        composable(
+            route = Routes.pattern(Game.HASHTAG),
+            arguments = dateArgument()
+        ) {
             EmBreveScreen(
                 title = Game.HASHTAG.title,
                 onBack = { navController.popBackStack() }
             )
         }
 
-        composable(Routes.SUDOKU) {
+        composable(
+            route = Routes.pattern(Game.SUDOKU),
+            arguments = dateArgument()
+        ) {
             EmBreveScreen(
                 title = Game.SUDOKU.title,
                 onBack = { navController.popBackStack() }
             )
         }
 
-        composable(Routes.CRUZADINHA_MINI) {
+        composable(
+            route = Routes.pattern(Game.CRUZADINHA_MINI),
+            arguments = dateArgument()
+        ) {
             EmBreveScreen(
                 title = Game.CRUZADINHA_MINI.title,
                 onBack = { navController.popBackStack() }
@@ -67,21 +92,30 @@ fun DailyPuzzleNavGraph(
         }
 
         composable(Routes.STATS) {
-            EmBreveScreen(
-                title = "Estatísticas",
-                onBack = { navController.popBackStack() }
+            StatsScreen(
+                onBack = { navController.popBackStack() },
+                onPlayDay = { game, date -> navController.navigate(Routes.forGame(game, date)) }
             )
         }
 
         composable(
             route = Routes.RESULT,
-            arguments = listOf(navArgument(Routes.ARG_GAME_ID) { type = NavType.StringType })
-        ) { backStackEntry ->
-            val gameId = backStackEntry.arguments?.getString(Routes.ARG_GAME_ID)
-            val game = Game.entries.firstOrNull { it.name == gameId }
-            EmBreveScreen(
-                title = if (game != null) "Resultado: ${game.title}" else "Resultado",
-                onBack = { navController.popBackStack() }
+            arguments = listOf(
+                navArgument(Routes.ARG_GAME_ID) { type = NavType.StringType },
+                navArgument(Routes.ARG_DATE) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) {
+            ResultScreen(
+                onBack = { navController.popBackStack() },
+                onHome = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.HOME) { inclusive = true }
+                    }
+                },
+                onStats = { navController.navigate(Routes.STATS) }
             )
         }
     }

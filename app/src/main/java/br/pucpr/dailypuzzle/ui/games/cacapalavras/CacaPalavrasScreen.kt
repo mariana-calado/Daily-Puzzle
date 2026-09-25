@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -49,6 +50,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.pucpr.dailypuzzle.R
 import br.pucpr.dailypuzzle.data.content.WordSearchGenerator
+import br.pucpr.dailypuzzle.data.local.entity.GameProgressEntity
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.WordCell
 import br.pucpr.dailypuzzle.model.WordSearchPuzzle
@@ -62,7 +64,7 @@ import kotlin.random.Random
 @Composable
 fun CacaPalavrasScreen(
     onBack: () -> Unit,
-    onFinished: () -> Unit,
+    onShowResult: () -> Unit,
     viewModel: CacaPalavrasViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -70,7 +72,8 @@ fun CacaPalavrasScreen(
     CacaPalavrasContent(
         uiState = uiState,
         onBack = onBack,
-        onFinished = onFinished,
+        onShowResult = onShowResult,
+        onPlayAgain = viewModel::onPlayAgain,
         onSelectionChanged = viewModel::onSelectionChanged,
         onSelectionFinished = viewModel::onSelectionFinished
     )
@@ -81,7 +84,8 @@ fun CacaPalavrasScreen(
 private fun CacaPalavrasContent(
     uiState: CacaPalavrasUiState,
     onBack: () -> Unit,
-    onFinished: () -> Unit,
+    onShowResult: () -> Unit,
+    onPlayAgain: () -> Unit,
     onSelectionChanged: (List<WordCell>) -> Unit,
     onSelectionFinished: () -> Unit
 ) {
@@ -121,16 +125,15 @@ private fun CacaPalavrasContent(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
-                uiState.alreadyPlayed -> {
-                    MessageCard(
-                        emoji = "✅",
-                        title = "Você já jogou hoje",
-                        message = "Volte amanhã para um novo desafio.",
-                        buttonLabel = "Voltar ao início",
-                        onButtonClick = onBack,
+                uiState.previousResult != null && !uiState.practice -> {
+                    PreviousResultCard(
+                        result = uiState.previousResult,
+                        dateLabel = uiState.dateLabel,
+                        onPlayAgain = onPlayAgain,
+                        onShowResult = onShowResult,
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(24.dp)
+                            .padding(20.dp)
                     )
                 }
 
@@ -139,7 +142,8 @@ private fun CacaPalavrasContent(
                         puzzle = uiState.puzzle,
                         uiState = uiState,
                         accent = accent,
-                        onFinished = onFinished,
+                        onBack = onBack,
+                        onShowResult = onShowResult,
                         onSelectionChanged = onSelectionChanged,
                         onSelectionFinished = onSelectionFinished
                     )
@@ -154,7 +158,8 @@ private fun GameBoard(
     puzzle: WordSearchPuzzle,
     uiState: CacaPalavrasUiState,
     accent: Color,
-    onFinished: () -> Unit,
+    onBack: () -> Unit,
+    onShowResult: () -> Unit,
     onSelectionChanged: (List<WordCell>) -> Unit,
     onSelectionFinished: () -> Unit
 ) {
@@ -164,6 +169,18 @@ private fun GameBoard(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
+        if (uiState.practice) {
+            Banner(
+                text = "Modo treino: este resultado não conta para a sequência.",
+                color = accent
+            )
+        } else if (!uiState.isToday) {
+            Banner(
+                text = "Desafio de ${uiState.dateLabel}",
+                color = MaterialTheme.colorScheme.tertiary
+            )
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -224,17 +241,46 @@ private fun GameBoard(
 
         if (uiState.finished) {
             Spacer(modifier = Modifier.height(8.dp))
-            MessageCard(
-                emoji = "🎉",
-                title = "Parabéns!",
-                message = "Você encontrou todas as palavras de hoje.",
-                buttonLabel = "Ver resultado",
-                onButtonClick = onFinished,
-                modifier = Modifier.fillMaxWidth()
-            )
+            if (uiState.practice) {
+                MessageCard(
+                    emoji = "🎯",
+                    title = "Treino concluído!",
+                    message = "Este resultado não altera sua sequência.",
+                    buttonLabel = "Voltar ao início",
+                    onButtonClick = onBack,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                MessageCard(
+                    emoji = "🎉",
+                    title = "Parabéns!",
+                    message = "Você encontrou todas as palavras em ${uiState.attempts} tentativas.",
+                    buttonLabel = "Ver resultado",
+                    onButtonClick = onShowResult,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun Banner(text: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp)
+            .clip(MaterialTheme.shapes.small)
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = color
+        )
     }
 }
 
@@ -366,6 +412,67 @@ private fun WordChip(
 }
 
 @Composable
+private fun PreviousResultCard(
+    result: GameProgressEntity,
+    dateLabel: String,
+    onPlayAgain: () -> Unit,
+    onShowResult: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ),
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = if (result.won) "🎉" else "😕", fontSize = 40.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = if (result.won) "Você venceu!" else "Não foi dessa vez",
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = dateLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = if (result.won) {
+                    "Você encontrou todas as palavras em ${result.attempts} tentativas."
+                } else {
+                    "Você não completou este desafio."
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = onPlayAgain,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Jogar novamente")
+            }
+            TextButton(
+                onClick = onShowResult,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Ver resultado completo")
+            }
+        }
+    }
+}
+
+@Composable
 private fun MessageCard(
     emoji: String,
     title: String,
@@ -454,7 +561,8 @@ private fun CacaPalavrasContentPreview() {
                 foundCells = puzzle.words.first { it.word == "PERA" }.cells.toSet()
             ),
             onBack = {},
-            onFinished = {},
+            onShowResult = {},
+            onPlayAgain = {},
             onSelectionChanged = {},
             onSelectionFinished = {}
         )

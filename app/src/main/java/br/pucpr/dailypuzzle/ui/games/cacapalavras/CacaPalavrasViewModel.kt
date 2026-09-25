@@ -1,14 +1,17 @@
 package br.pucpr.dailypuzzle.ui.games.cacapalavras
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.pucpr.dailypuzzle.data.content.WordSearchGenerator
 import br.pucpr.dailypuzzle.data.content.WordSearchLoader
+import br.pucpr.dailypuzzle.data.local.entity.GameProgressEntity
 import br.pucpr.dailypuzzle.data.repository.GameRepository
 import br.pucpr.dailypuzzle.model.DailySeed
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.WordCell
 import br.pucpr.dailypuzzle.model.WordSearchPuzzle
+import br.pucpr.dailypuzzle.navigation.Routes
 import br.pucpr.dailypuzzle.util.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +25,11 @@ import javax.inject.Inject
 
 data class CacaPalavrasUiState(
     val loading: Boolean = true,
-    val alreadyPlayed: Boolean = false,
+    val date: String = "",
+    val dateLabel: String = "",
+    val isToday: Boolean = true,
+    val previousResult: GameProgressEntity? = null,
+    val practice: Boolean = false,
     val puzzle: WordSearchPuzzle? = null,
     val foundWords: Set<String> = emptySet(),
     val foundCells: Set<WordCell> = emptySet(),
@@ -34,8 +41,13 @@ data class CacaPalavrasUiState(
 @HiltViewModel
 class CacaPalavrasViewModel @Inject constructor(
     private val repository: GameRepository,
-    private val loader: WordSearchLoader
+    private val loader: WordSearchLoader,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val date: String = savedStateHandle.get<String>(Routes.ARG_DATE)
+        ?.takeIf { it.isNotBlank() }
+        ?: DateUtils.today()
 
     private val _uiState = MutableStateFlow(CacaPalavrasUiState())
     val uiState: StateFlow<CacaPalavrasUiState> = _uiState.asStateFlow()
@@ -46,8 +58,7 @@ class CacaPalavrasViewModel @Inject constructor(
 
     private fun load() {
         viewModelScope.launch {
-            val date = DateUtils.today()
-            val alreadyPlayed = repository.playedToday(Game.CACA_PALAVRAS)
+            val previousResult = repository.getProgress(Game.CACA_PALAVRAS, date)
 
             val puzzle = withContext(Dispatchers.IO) {
                 val banks = loader.loadBanks()
@@ -63,10 +74,26 @@ class CacaPalavrasViewModel @Inject constructor(
             _uiState.update { state ->
                 state.copy(
                     loading = false,
-                    alreadyPlayed = alreadyPlayed,
+                    date = date,
+                    dateLabel = DateUtils.label(date),
+                    isToday = date == DateUtils.today(),
+                    previousResult = previousResult,
                     puzzle = puzzle
                 )
             }
+        }
+    }
+
+    fun onPlayAgain() {
+        _uiState.update { state ->
+            state.copy(
+                practice = true,
+                foundWords = emptySet(),
+                foundCells = emptySet(),
+                selection = emptyList(),
+                attempts = 0,
+                finished = false
+            )
         }
     }
 
@@ -92,7 +119,7 @@ class CacaPalavrasViewModel @Inject constructor(
         val foundWords = if (match == null) state.foundWords else state.foundWords + match.word
         val foundCells = if (match == null) state.foundCells else state.foundCells + match.cells
         val attempts = state.attempts + 1
-        val finished = foundWords.size == puzzle.words.size
+        val completed = foundWords.size == puzzle.words.size
 
         _uiState.update {
             it.copy(
@@ -100,13 +127,19 @@ class CacaPalavrasViewModel @Inject constructor(
                 foundWords = foundWords,
                 foundCells = foundCells,
                 attempts = attempts,
-                finished = finished
+                finished = completed
             )
         }
 
-        if (finished) {
+        val isValidResult = completed && !state.practice && state.previousResult == null
+        if (isValidResult) {
             viewModelScope.launch {
-                repository.saveResult(Game.CACA_PALAVRAS, won = true, attempts = attempts)
+                repository.saveResult(
+                    game = Game.CACA_PALAVRAS,
+                    won = true,
+                    attempts = attempts,
+                    date = date
+                )
             }
         }
     }
