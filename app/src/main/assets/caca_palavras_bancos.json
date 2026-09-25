@@ -1,0 +1,14 @@
+{
+  "bancos": [
+    { "tema": "Frutas", "palavras": ["BANANA", "MANGA", "LIMAO", "GOIABA", "PERA", "CAJU"] },
+    { "tema": "Animais", "palavras": ["GATO", "CAVALO", "TIGRE", "MACACO", "PATO", "ONCA"] },
+    { "tema": "Cores", "palavras": ["VERDE", "AZUL", "ROXO", "PRETO", "BRANCO", "AMARELO"] },
+    { "tema": "Escola", "palavras": ["LIVRO", "CADERNO", "LAPIS", "PROVA", "AULA", "MOCHILA"] },
+    { "tema": "Praia", "palavras": ["AREIA", "ONDA", "BARCO", "CONCHA", "SOL", "MAR"] },
+    { "tema": "Comida", "palavras": ["ARROZ", "FEIJAO", "QUEIJO", "PIZZA", "BOLO", "SALADA"] },
+    { "tema": "Tecnologia", "palavras": ["MOUSE", "TECLADO", "CELULAR", "REDE", "CODIGO", "SENHA"] },
+    { "tema": "Natureza", "palavras": ["ARVORE", "FLOR", "MONTANHA", "CHUVA", "FOLHA", "RIO"] },
+    { "tema": "Esportes", "palavras": ["FUTEBOL", "TENIS", "NATACAO", "VOLEI", "JUDO", "CORRIDA"] },
+    { "tema": "Casa", "palavras": ["SOFA", "MESA", "PORTA", "JANELA", "COZINHA", "CAMA"] }
+  ]
+}

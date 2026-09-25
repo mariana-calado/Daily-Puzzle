@@ -1,17 +1,38 @@
 package br.pucpr.dailypuzzle.ui.home
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import br.pucpr.dailypuzzle.data.repository.GameRepository
 import br.pucpr.dailypuzzle.model.Game
-import kotlinx.coroutines.flow.MutableStateFlow
+import br.pucpr.dailypuzzle.util.DateUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 data class HomeUiState(
-    val games: List<Game> = Game.entries
+    val dateLabel: String = "",
+    val games: List<Game> = Game.entries,
+    val completedToday: Set<Game> = emptySet()
 )
 
-class HomeViewModel : ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    repository: GameRepository
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<HomeUiState> = repository.observeTodayProgress()
+        .map { progress ->
+            HomeUiState(
+                dateLabel = DateUtils.todayLabel(),
+                completedToday = progress.filter { it.completed }.map { it.gameId }.toSet()
+            )
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = HomeUiState(dateLabel = DateUtils.todayLabel())
+        )
 }

@@ -7,15 +7,52 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val LightColorScheme = lightColorScheme(
-    primary = Indigo40,
-    secondary = Slate40,
-    tertiary = Coral40
+    primary = IndigoPrimary,
+    onPrimary = IndigoOnPrimary,
+    primaryContainer = IndigoContainer,
+    onPrimaryContainer = IndigoOnContainer,
+    secondary = SlateSecondary,
+    onSecondary = IndigoOnPrimary,
+    secondaryContainer = SlateContainer,
+    onSecondaryContainer = SlateOnContainer,
+    tertiary = CoralTertiary,
+    background = NeutralBackground,
+    onBackground = NeutralOnBackground,
+    surface = NeutralBackground,
+    onSurface = NeutralOnBackground,
+    surfaceVariant = NeutralSurfaceVariant,
+    onSurfaceVariant = NeutralOnSurfaceVariant,
+    outline = NeutralOutline,
+    outlineVariant = NeutralOutlineVariant,
+    surfaceContainerLowest = SurfaceLowest,
+    surfaceContainerLow = SurfaceLow,
+    surfaceContainer = SurfaceContainerLight,
+    surfaceContainerHigh = SurfaceHigh,
+    surfaceContainerHighest = SurfaceHighest
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Indigo80,
-    secondary = Slate80,
-    tertiary = Coral80
+    primary = IndigoPrimaryDark,
+    onPrimary = IndigoOnPrimaryDark,
+    primaryContainer = IndigoContainerDark,
+    onPrimaryContainer = IndigoOnContainerDark,
+    secondary = SlateSecondaryDark,
+    secondaryContainer = SlateContainerDark,
+    onSecondaryContainer = SlateOnContainerDark,
+    tertiary = CoralTertiaryDark,
+    background = NeutralBackgroundDark,
+    onBackground = NeutralOnBackgroundDark,
+    surface = NeutralBackgroundDark,
+    onSurface = NeutralOnBackgroundDark,
+    surfaceVariant = NeutralSurfaceVariantDark,
+    onSurfaceVariant = NeutralOnSurfaceVariantDark,
+    outline = NeutralOutlineDark,
+    outlineVariant = NeutralOutlineVariantDark,
+    surfaceContainerLowest = SurfaceLowestDark,
+    surfaceContainerLow = SurfaceLowDark,
+    surfaceContainer = SurfaceContainerDarkTheme,
+    surfaceContainerHigh = SurfaceHighDark,
+    surfaceContainerHighest = SurfaceHighestDark
 )
 
 @Composable
@@ -26,6 +63,7 @@ fun DailyPuzzleTheme(
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
+        shapes = Shapes,
         content = content
     )
 }
