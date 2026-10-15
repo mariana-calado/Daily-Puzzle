@@ -36,4 +36,7 @@ object DateUtils {
 
     fun weekdayLetter(date: String): String =
         LocalDate.parse(date, KEY_FORMATTER).format(WEEKDAY_FORMATTER).uppercase(LOCALE)
+
+    fun dayOfMonth(date: String): String =
+        LocalDate.parse(date, KEY_FORMATTER).dayOfMonth.toString()
 }

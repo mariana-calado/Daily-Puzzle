@@ -1,6 +1,8 @@
 package br.pucpr.dailypuzzle.ui.games.cacapalavras
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,22 +15,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,12 +39,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.pucpr.dailypuzzle.R
@@ -54,9 +51,17 @@ import br.pucpr.dailypuzzle.data.local.entity.GameProgressEntity
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.WordCell
 import br.pucpr.dailypuzzle.model.WordSearchPuzzle
+import br.pucpr.dailypuzzle.ui.common.AppIcon
+import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.IconBadge
+import br.pucpr.dailypuzzle.ui.common.InfoBanner
+import br.pucpr.dailypuzzle.ui.common.subtleBorder
 import br.pucpr.dailypuzzle.ui.theme.DailyPuzzleTheme
+import br.pucpr.dailypuzzle.ui.theme.LossColor
 import br.pucpr.dailypuzzle.ui.theme.OnTile
+import br.pucpr.dailypuzzle.ui.theme.TileCorrect
 import br.pucpr.dailypuzzle.ui.theme.gameAccent
+import br.pucpr.dailypuzzle.ui.theme.gameIcon
 import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.random.Random
@@ -79,7 +84,6 @@ fun CacaPalavrasScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CacaPalavrasContent(
     uiState: CacaPalavrasUiState,
@@ -93,27 +97,7 @@ private fun CacaPalavrasContent(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = Game.CACA_PALAVRAS.title,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_arrow_back),
-                            contentDescription = "Voltar"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
+        topBar = { AppTopBar(title = Game.CACA_PALAVRAS.title, onBack = onBack) }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -163,6 +147,10 @@ private fun GameBoard(
     onSelectionChanged: (List<WordCell>) -> Unit,
     onSelectionFinished: () -> Unit
 ) {
+    val found = uiState.foundWords.size
+    val total = puzzle.words.size
+    val fraction = if (total == 0) 0f else found / total.toFloat()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -170,41 +158,71 @@ private fun GameBoard(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         if (uiState.practice) {
-            Banner(
-                text = "Modo treino: este resultado não conta para a sequência.",
+            InfoBanner(
+                icon = R.drawable.ic_replay,
+                text = "Modo treino: não conta para a sequência.",
                 color = accent
             )
+            Spacer(modifier = Modifier.height(12.dp))
         } else if (!uiState.isToday) {
-            Banner(
+            InfoBanner(
+                icon = R.drawable.ic_calendar_today,
                 text = "Desafio de ${uiState.dateLabel}",
                 color = MaterialTheme.colorScheme.tertiary
             )
+            Spacer(modifier = Modifier.height(12.dp))
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            IconBadge(icon = gameIcon(Game.CACA_PALAVRAS), tint = accent, size = 46.dp)
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "TEMA",
+                    text = "TEMA DO DIA",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = puzzle.theme,
-                    style = MaterialTheme.typography.headlineSmall
+                    style = MaterialTheme.typography.titleLarge
                 )
             }
-            Text(
-                text = "${uiState.foundWords.size}/${puzzle.words.size}",
-                style = MaterialTheme.typography.titleLarge,
-                color = accent
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(accent.copy(alpha = 0.14f))
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "$found/$total",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = accent
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(fraction)
+                    .clip(CircleShape)
+                    .background(accent)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         WordGrid(
             puzzle = puzzle,
@@ -216,7 +234,14 @@ private fun GameBoard(
             onSelectionFinished = onSelectionFinished
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(22.dp))
+
+        Text(
+            text = "Palavras para encontrar",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 10.dp)
+        )
 
         puzzle.words.map { it.word }.chunked(2).forEach { rowWords ->
             Row(
@@ -240,22 +265,26 @@ private fun GameBoard(
         }
 
         if (uiState.finished) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             if (uiState.practice) {
                 MessageCard(
-                    emoji = "🎯",
+                    icon = R.drawable.ic_check_circle,
+                    tint = accent,
                     title = "Treino concluído!",
                     message = "Este resultado não altera sua sequência.",
                     buttonLabel = "Voltar ao início",
+                    buttonIcon = R.drawable.ic_home,
                     onButtonClick = onBack,
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
                 MessageCard(
-                    emoji = "🎉",
+                    icon = R.drawable.ic_celebration,
+                    tint = TileCorrect,
                     title = "Parabéns!",
                     message = "Você encontrou todas as palavras em ${uiState.attempts} tentativas.",
                     buttonLabel = "Ver resultado",
+                    buttonIcon = R.drawable.ic_emoji_events,
                     onButtonClick = onShowResult,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -263,24 +292,6 @@ private fun GameBoard(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
-private fun Banner(text: String, color: Color) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 12.dp)
-            .clip(MaterialTheme.shapes.small)
-            .background(color.copy(alpha = 0.12f))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            color = color
-        )
     }
 }
 
@@ -295,14 +306,16 @@ private fun WordGrid(
     onSelectionFinished: () -> Unit
 ) {
     var startCell by remember { mutableStateOf<WordCell?>(null) }
+    val shape = MaterialTheme.shapes.large
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-            .padding(4.dp)
+            .border(subtleBorder(), shape)
+            .padding(6.dp)
             .pointerInput(puzzle, enabled) {
                 if (!enabled) return@pointerInput
 
@@ -366,21 +379,26 @@ private fun LetterCell(
 ) {
     val background = when {
         selected -> accent
-        found -> accent.copy(alpha = 0.18f)
+        found -> accent.copy(alpha = 0.16f)
         else -> Color.Transparent
+    }
+    val textColor = when {
+        selected -> OnTile
+        found -> accent
+        else -> MaterialTheme.colorScheme.onSurface
     }
 
     Box(
         modifier = modifier
             .padding(2.dp)
-            .clip(MaterialTheme.shapes.extraSmall)
+            .clip(RoundedCornerShape(10.dp))
             .background(background),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = letter.toString(),
             style = MaterialTheme.typography.titleMedium,
-            color = if (selected) OnTile else MaterialTheme.colorScheme.onSurface
+            color = textColor
         )
     }
 }
@@ -392,15 +410,20 @@ private fun WordChip(
     accent: Color,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Row(
         modifier = modifier
             .clip(CircleShape)
             .background(
-                if (found) accent.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceContainerHigh
+                if (found) accent.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surfaceContainerHigh
             )
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        if (found) {
+            AppIcon(icon = R.drawable.ic_check, tint = accent, size = 16.dp)
+            Spacer(modifier = Modifier.width(6.dp))
+        }
         Text(
             text = word,
             style = MaterialTheme.typography.labelLarge,
@@ -419,11 +442,15 @@ private fun PreviousResultCard(
     onShowResult: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val won = result.won
+    val tint = if (won) TileCorrect else LossColor
+
     Card(
-        shape = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
+        border = subtleBorder(),
         modifier = modifier
     ) {
         Column(
@@ -432,10 +459,16 @@ private fun PreviousResultCard(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = if (result.won) "🎉" else "😕", fontSize = 40.sp)
-            Spacer(modifier = Modifier.height(12.dp))
+            IconBadge(
+                icon = if (won) R.drawable.ic_emoji_events else R.drawable.ic_sentiment_dissatisfied,
+                tint = tint,
+                size = 80.dp,
+                iconSize = 42.dp,
+                shape = CircleShape
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = if (result.won) "Você venceu!" else "Não foi dessa vez",
+                text = if (won) "Você venceu!" else "Não foi dessa vez",
                 style = MaterialTheme.typography.headlineSmall
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -444,9 +477,9 @@ private fun PreviousResultCard(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = if (result.won) {
+                text = if (won) {
                     "Você encontrou todas as palavras em ${result.attempts} tentativas."
                 } else {
                     "Você não completou este desafio."
@@ -455,11 +488,15 @@ private fun PreviousResultCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = onPlayAgain,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
             ) {
+                AppIcon(icon = R.drawable.ic_replay, size = 20.dp)
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "Jogar novamente")
             }
             TextButton(
@@ -474,18 +511,21 @@ private fun PreviousResultCard(
 
 @Composable
 private fun MessageCard(
-    emoji: String,
+    @DrawableRes icon: Int,
+    tint: Color,
     title: String,
     message: String,
     buttonLabel: String,
+    @DrawableRes buttonIcon: Int,
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        shape = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         ),
+        border = subtleBorder(),
         modifier = modifier
     ) {
         Column(
@@ -494,8 +534,14 @@ private fun MessageCard(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = emoji, fontSize = 36.sp)
-            Spacer(modifier = Modifier.height(12.dp))
+            IconBadge(
+                icon = icon,
+                tint = tint,
+                size = 68.dp,
+                iconSize = 36.dp,
+                shape = CircleShape
+            )
+            Spacer(modifier = Modifier.height(14.dp))
             Text(text = title, style = MaterialTheme.typography.headlineSmall)
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -505,7 +551,14 @@ private fun MessageCard(
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(20.dp))
-            Button(onClick = onButtonClick) {
+            Button(
+                onClick = onButtonClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                AppIcon(icon = buttonIcon, size = 20.dp)
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(text = buttonLabel)
             }
         }
