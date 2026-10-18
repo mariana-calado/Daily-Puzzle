@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.EmBreveScreen
 import br.pucpr.dailypuzzle.ui.games.cacapalavras.CacaPalavrasScreen
+import br.pucpr.dailypuzzle.ui.games.termo.TermoScreen
 import br.pucpr.dailypuzzle.ui.home.HomeScreen
 import br.pucpr.dailypuzzle.ui.result.ResultScreen
 import br.pucpr.dailypuzzle.ui.stats.StatsScreen
@@ -54,13 +55,11 @@ fun DailyPuzzleNavGraph(
         composable(
             route = Routes.pattern(Game.TERMO),
             arguments = dateArgument()
-        ) {
-            EmBreveScreen(
-                title = Game.TERMO.title,
+        ) { backStackEntry ->
+            TermoScreen(
                 onBack = { navController.popBackStack() }
             )
         }
-
         composable(
             route = Routes.pattern(Game.HASHTAG),
             arguments = dateArgument()
