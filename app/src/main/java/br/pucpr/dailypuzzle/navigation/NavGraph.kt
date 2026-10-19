@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.EmBreveScreen
 import br.pucpr.dailypuzzle.ui.games.cacapalavras.CacaPalavrasScreen
+import br.pucpr.dailypuzzle.ui.games.sudoku.SudokuScreen
 import br.pucpr.dailypuzzle.ui.games.termo.TermoScreen
 import br.pucpr.dailypuzzle.ui.home.HomeScreen
 import br.pucpr.dailypuzzle.ui.result.ResultScreen
@@ -74,8 +75,7 @@ fun DailyPuzzleNavGraph(
             route = Routes.pattern(Game.SUDOKU),
             arguments = dateArgument()
         ) {
-            EmBreveScreen(
-                title = Game.SUDOKU.title,
+            SudokuScreen(
                 onBack = { navController.popBackStack() }
             )
         }
