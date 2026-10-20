@@ -15,6 +15,7 @@ import br.pucpr.dailypuzzle.ui.games.termo.TermoScreen
 import br.pucpr.dailypuzzle.ui.home.HomeScreen
 import br.pucpr.dailypuzzle.ui.result.ResultScreen
 import br.pucpr.dailypuzzle.ui.stats.StatsScreen
+import br.pucpr.dailypuzzle.ui.games.cruzadinha.CruzadinhaScreen
 
 private fun dateArgument() = listOf(
     navArgument(Routes.ARG_DATE) {
@@ -95,10 +96,15 @@ fun DailyPuzzleNavGraph(
         composable(
             route = Routes.pattern(Game.CRUZADINHA_MINI),
             arguments = dateArgument()
-        ) {
-            EmBreveScreen(
-                title = Game.CRUZADINHA_MINI.title,
-                onBack = { navController.popBackStack() }
+        ) { entry ->
+            val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
+            CruzadinhaScreen(
+                onBack = { navController.popBackStack() },
+                onAlreadyPlayed = {
+                    navController.navigate(Routes.result(Game.CRUZADINHA_MINI, date)) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
             )
         }
 
