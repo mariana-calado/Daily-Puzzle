@@ -19,16 +19,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.SudokuState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SudokuScreen(
-    viewModel: SudokuViewModel = viewModel(),
-    onBack: () -> Unit
+    viewModel: SudokuViewModel = hiltViewModel(),
+    onBack: () -> Unit,
+    onAlreadyPlayed: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
+
+    // Dia já jogado: vai direto para a tela de resultado
+    LaunchedEffect(alreadyPlayed) {
+        if (alreadyPlayed == true) onAlreadyPlayed()
+    }
+
+    // Enquanto verifica (ou redireciona), não mostra o tabuleiro
+    if (alreadyPlayed != false) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

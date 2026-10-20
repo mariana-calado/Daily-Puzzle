@@ -56,9 +56,15 @@ fun DailyPuzzleNavGraph(
         composable(
             route = Routes.pattern(Game.TERMO),
             arguments = dateArgument()
-        ) { backStackEntry ->
+        ) { entry ->
+            val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
             TermoScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onAlreadyPlayed = {
+                    navController.navigate(Routes.result(Game.TERMO, date)) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
             )
         }
         composable(
@@ -74,9 +80,15 @@ fun DailyPuzzleNavGraph(
         composable(
             route = Routes.pattern(Game.SUDOKU),
             arguments = dateArgument()
-        ) {
+        ) { entry ->
+            val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
             SudokuScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onAlreadyPlayed = {
+                    navController.navigate(Routes.result(Game.SUDOKU, date)) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
             )
         }
 

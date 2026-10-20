@@ -1,18 +1,50 @@
 package br.pucpr.dailypuzzle.ui.games.termo
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import br.pucpr.dailypuzzle.data.repository.GameRepository
+import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.GameStatus
 import br.pucpr.dailypuzzle.model.Letter
 import br.pucpr.dailypuzzle.model.LetterStatus
 import br.pucpr.dailypuzzle.model.TermoState
+import br.pucpr.dailypuzzle.util.DailyWords
+import br.pucpr.dailypuzzle.navigation.Routes
+import br.pucpr.dailypuzzle.util.DateUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.text.get
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TermoViewModel : ViewModel() {
-    private val _state = MutableStateFlow(TermoState())
+@HiltViewModel
+class TermoViewModel @Inject constructor(
+    private val repository: GameRepository,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
+
+    // Dia que está sendo jogado: vem da navegação (ao tocar num dia vazio nas estatísticas)
+    // ou, se não vier nada, é o dia de hoje.
+    private val date: String = savedStateHandle.get<String>(Routes.ARG_DATE)
+        ?.takeIf { it.isNotBlank() }
+        ?: DateUtils.today()
+
+    private var resultSaved = false
+
+    // null = verificando; true = esse dia já foi jogado; false = pode jogar
+    private val _alreadyPlayed = MutableStateFlow<Boolean?>(null)
+    val alreadyPlayed: StateFlow<Boolean?> = _alreadyPlayed.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _alreadyPlayed.value = repository.getProgress(Game.TERMO, date) != null
+        }
+    }
+
+    private val _state = MutableStateFlow(TermoState(targetWord = DailyWords.forDate(date)))
     val state: StateFlow<TermoState> = _state.asStateFlow()
 
     fun onKeyPress(char: Char) {
@@ -86,6 +118,27 @@ class TermoViewModel : ViewModel() {
                 currentRow = if (newGameStatus == GameStatus.PLAYING) currentRow + 1 else currentRow,
                 currentCol = 0,
                 gameStatus = newGameStatus
+            )
+        }
+
+        // Jogo terminou (vitória ou derrota): registra o dia como jogado
+        if (newGameStatus != GameStatus.PLAYING) {
+            saveResult(
+                won = newGameStatus == GameStatus.WON,
+                attempts = currentRow + 1 // linha validada agora (0-based) + 1
+            )
+        }
+    }
+
+    private fun saveResult(won: Boolean, attempts: Int) {
+        if (resultSaved) return
+        resultSaved = true
+        viewModelScope.launch {
+            repository.saveResult(
+                game = Game.TERMO,
+                won = won,
+                attempts = attempts,
+                date = date
             )
         }
     }

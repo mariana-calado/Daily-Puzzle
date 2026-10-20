@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.GameStatus
 import br.pucpr.dailypuzzle.model.LetterStatus
 
@@ -31,10 +31,17 @@ private val keyboardRows = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TermoScreen(
-    viewModel: TermoViewModel = viewModel(),
-    onBack: () -> Unit
+    viewModel: TermoViewModel = hiltViewModel(),
+    onBack: () -> Unit,
+    onAlreadyPlayed: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
+
+    // Dia já jogado: vai direto para a tela de resultado
+    LaunchedEffect(alreadyPlayed) {
+        if (alreadyPlayed == true) onAlreadyPlayed()
+    }
 
     // Melhor status de cada letra já tentada (CORRECT > PRESENT > ABSENT)
     val keyStatuses: Map<Char, LetterStatus> = remember(state.grid) {
@@ -49,6 +56,14 @@ fun TermoScreen(
             }
         }
         map
+    }
+
+    // Enquanto verifica (ou redireciona), não mostra o tabuleiro
+    if (alreadyPlayed != false) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
     }
 
     Scaffold(
