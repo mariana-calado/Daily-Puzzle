@@ -26,15 +26,14 @@ class TermoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // Dia que está sendo jogado: vem da navegação (ao tocar num dia vazio nas estatísticas)
-    // ou, se não vier nada, é o dia de hoje.
+
     private val date: String = savedStateHandle.get<String>(Routes.ARG_DATE)
         ?.takeIf { it.isNotBlank() }
         ?: DateUtils.today()
 
     private var resultSaved = false
 
-    // null = verificando; true = esse dia já foi jogado; false = pode jogar
+
     private val _alreadyPlayed = MutableStateFlow<Boolean?>(null)
     val alreadyPlayed: StateFlow<Boolean?> = _alreadyPlayed.asStateFlow()
 
@@ -93,7 +92,7 @@ class TermoViewModel @Inject constructor(
         val guessedChars = currentState.grid[currentRow].map { it.char }
         val guessedWord = guessedChars.joinToString("")
 
-        // Validação simples de cores
+
         val newRow = currentState.grid[currentRow].mapIndexed { index, letter ->
             val status = when {
                 letter.char == targetWord[index] -> LetterStatus.CORRECT
@@ -121,11 +120,11 @@ class TermoViewModel @Inject constructor(
             )
         }
 
-        // Jogo terminou (vitória ou derrota): registra o dia como jogado
+
         if (newGameStatus != GameStatus.PLAYING) {
             saveResult(
                 won = newGameStatus == GameStatus.WON,
-                attempts = currentRow + 1 // linha validada agora (0-based) + 1
+                attempts = currentRow + 1
             )
         }
     }

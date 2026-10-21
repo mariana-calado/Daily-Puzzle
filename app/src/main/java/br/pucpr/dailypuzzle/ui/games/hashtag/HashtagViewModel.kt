@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 data class HashtagState(
     val puzzle: HashtagPuzzle,
-    val grid: List<List<Char>>,            // ' ' nas casas fora do #
+    val grid: List<List<Char>>,
     val selected: Pair<Int, Int>? = null,
     val movesLeft: Int = DailyHashtags.MAX_MOVES,
     val gameStatus: GameStatus = GameStatus.PLAYING
@@ -39,7 +39,6 @@ class HashtagViewModel @Inject constructor(
 
     private var resultSaved = false
 
-    // null = verificando; true = esse dia já foi jogado; false = pode jogar
     private val _alreadyPlayed = MutableStateFlow<Boolean?>(null)
     val alreadyPlayed: StateFlow<Boolean?> = _alreadyPlayed.asStateFlow()
 
@@ -56,12 +55,9 @@ class HashtagViewModel @Inject constructor(
     )
     val state: StateFlow<HashtagState> = _state.asStateFlow()
 
-    /** Casa ativa e que ainda não está verde (letras verdes ficam travadas). */
     private fun isMovable(s: HashtagState, cell: Pair<Int, Int>): Boolean =
         s.puzzle.isActive(cell.first, cell.second) &&
                 s.puzzle.statuses(s.grid)[cell] != LetterStatus.CORRECT
-
-    /** Toque: primeiro toque seleciona, segundo toque troca. */
     fun onCellTap(cell: Pair<Int, Int>) {
         val s = _state.value
         if (s.gameStatus != GameStatus.PLAYING || !isMovable(s, cell)) return
@@ -73,14 +69,12 @@ class HashtagViewModel @Inject constructor(
         }
     }
 
-    /** Começo do arrasto: marca a casa de origem. */
     fun onDragStart(cell: Pair<Int, Int>) {
         val s = _state.value
         if (s.gameStatus != GameStatus.PLAYING || !isMovable(s, cell)) return
         _state.update { it.copy(selected = cell) }
     }
 
-    /** Fim do arrasto: troca origem e destino (ou só limpa a seleção). */
     fun onDrop(from: Pair<Int, Int>?, to: Pair<Int, Int>?) {
         if (from == null || to == null) {
             _state.update { it.copy(selected = null) }
@@ -123,7 +117,7 @@ class HashtagViewModel @Inject constructor(
         if (status != GameStatus.PLAYING) {
             saveResult(
                 won = status == GameStatus.WON,
-                attempts = DailyHashtags.MAX_MOVES - movesLeft // movimentos usados
+                attempts = DailyHashtags.MAX_MOVES - movesLeft
             )
         }
     }

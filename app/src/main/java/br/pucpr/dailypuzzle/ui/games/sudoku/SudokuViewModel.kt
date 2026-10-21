@@ -23,14 +23,12 @@ class SudokuViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // Dia que está sendo jogado: vem da navegação ou, se não vier nada, é hoje.
     private val date: String = savedStateHandle.get<String>(Routes.ARG_DATE)
         ?.takeIf { it.isNotBlank() }
         ?: DateUtils.today()
 
     private var resultSaved = false
 
-    // null = verificando; true = esse dia já foi jogado; false = pode jogar
     private val _alreadyPlayed = MutableStateFlow<Boolean?>(null)
     val alreadyPlayed: StateFlow<Boolean?> = _alreadyPlayed.asStateFlow()
 
@@ -76,7 +74,6 @@ class SudokuViewModel @Inject constructor(
             )
         }
 
-        // Sudoku completo: registra o dia como jogado e vencido
         if (done) saveResult()
     }
 
@@ -88,7 +85,7 @@ class SudokuViewModel @Inject constructor(
             repository.saveResult(
                 game = Game.SUDOKU,
                 won = true,
-                attempts = mistakes, // no Sudoku, guardamos o número de erros
+                attempts = mistakes,
                 date = date
             )
         }
@@ -116,7 +113,6 @@ class SudokuViewModel @Inject constructor(
     }
 
     private companion object {
-        // Tabuleiro do dia, gerado a partir da data
         fun newGame(date: String): SudokuState {
             val board = SudokuGenerator.forDate(date)
             val grid = List(9) { r ->

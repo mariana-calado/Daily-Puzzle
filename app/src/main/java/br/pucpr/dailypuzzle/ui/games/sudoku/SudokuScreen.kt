@@ -32,12 +32,10 @@ fun SudokuScreen(
     val state by viewModel.state.collectAsState()
     val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
 
-    // Dia já jogado: vai direto para a tela de resultado
     LaunchedEffect(alreadyPlayed) {
         if (alreadyPlayed == true) onAlreadyPlayed()
     }
 
-    // Enquanto verifica (ou redireciona), não mostra o tabuleiro
     if (alreadyPlayed != false) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()

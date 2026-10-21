@@ -38,12 +38,10 @@ fun TermoScreen(
     val state by viewModel.state.collectAsState()
     val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
 
-    // Dia já jogado: vai direto para a tela de resultado
     LaunchedEffect(alreadyPlayed) {
         if (alreadyPlayed == true) onAlreadyPlayed()
     }
 
-    // Melhor status de cada letra já tentada (CORRECT > PRESENT > ABSENT)
     val keyStatuses: Map<Char, LetterStatus> = remember(state.grid) {
         val priority = listOf(LetterStatus.ABSENT, LetterStatus.PRESENT, LetterStatus.CORRECT)
         val map = mutableMapOf<Char, LetterStatus>()
@@ -58,7 +56,6 @@ fun TermoScreen(
         map
     }
 
-    // Enquanto verifica (ou redireciona), não mostra o tabuleiro
     if (alreadyPlayed != false) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -99,7 +96,6 @@ fun TermoScreen(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Grade de letras
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
@@ -120,7 +116,6 @@ fun TermoScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Mensagem de fim de jogo
                 when (state.gameStatus) {
                     GameStatus.WON -> Text(
                         text = "Você venceu! 🎉",
@@ -151,7 +146,7 @@ fun TermoScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
                     ) {
-                        // Última linha: Enter à esquerda e Apagar à direita
+
                         if (index == keyboardRows.lastIndex) {
                             KeyButton(
                                 label = "ENTER",
@@ -184,7 +179,7 @@ fun TermoScreen(
 
 @Composable
 private fun LetterCell(char: String, status: LetterStatus) {
-    // EMPTY e TYPED ficam só com contorno; as demais são avaliadas e preenchidas
+
     val isEvaluated = status != LetterStatus.EMPTY && status != LetterStatus.TYPED
     val shape = RoundedCornerShape(8.dp)
 

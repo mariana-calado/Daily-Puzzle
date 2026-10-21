@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 data class CruzadinhaState(
     val puzzle: Cruzadinha,
-    val input: List<List<Char>>,          // ' ' = vazio, '#' = casa preta
+    val input: List<List<Char>>,
     val selRow: Int,
     val selCol: Int,
     val horizontal: Boolean,
@@ -45,7 +45,6 @@ class CruzadinhaViewModel @Inject constructor(
     private var resultSaved = false
     private var checks = 0
 
-    // null = verificando; true = esse dia já foi jogado; false = pode jogar
     private val _alreadyPlayed = MutableStateFlow<Boolean?>(null)
     val alreadyPlayed: StateFlow<Boolean?> = _alreadyPlayed.asStateFlow()
 
@@ -166,7 +165,7 @@ class CruzadinhaViewModel @Inject constructor(
             repository.saveResult(
                 game = Game.CRUZADINHA_MINI,
                 won = true,
-                attempts = checks + 1, // nº de vezes que apertou "Checar" + a conclusão
+                attempts = checks + 1,
                 date = date
             )
         }

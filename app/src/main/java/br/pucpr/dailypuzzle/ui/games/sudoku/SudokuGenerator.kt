@@ -3,23 +3,14 @@ package br.pucpr.dailypuzzle.ui.games.sudoku
 import java.time.LocalDate
 import kotlin.random.Random
 
-/**
- * Gera o tabuleiro do dia a partir da data (formato "yyyy-MM-dd").
- *
- * A mesma data sempre produz o mesmo tabuleiro. O processo é:
- * 1. parte de uma solução válida conhecida e a embaralha (bandas, linhas, colunas e dígitos),
- *    o que sempre resulta em outra solução válida;
- * 2. remove células em ordem aleatória, mas só mantém a remoção se o puzzle continuar
- *    com exatamente uma solução.
- */
 object SudokuGenerator {
 
     class Board(
-        val puzzle: List<List<Int>>,   // 0 = vazia
+        val puzzle: List<List<Int>>,
         val solution: List<List<Int>>
     )
 
-    private const val CELLS_TO_REMOVE = 46   // ~35 dicas; aumente para ficar mais difícil
+    private const val CELLS_TO_REMOVE = 46
 
     fun forDate(date: String): Board {
         val day = LocalDate.parse(date).toEpochDay()
@@ -58,13 +49,11 @@ object SudokuGenerator {
         }
     }
 
-    // Embaralha as 3 bandas e as 3 linhas dentro de cada banda (vale também para colunas)
     private fun shuffledAxis(rnd: Random): List<Int> =
         (0..2).shuffled(rnd).flatMap { band ->
             (0..2).shuffled(rnd).map { band * 3 + it }
         }
 
-    // Conta soluções até o limite (basta saber se é 0, 1 ou "mais de 1")
     private fun countSolutions(grid: IntArray, limit: Int): Int {
         var bestIndex = -1
         var bestMask = 0
@@ -81,7 +70,7 @@ object SudokuGenerator {
                 bestCount = n
             }
         }
-        if (bestIndex == -1) return 1 // sem células vazias: uma solução
+        if (bestIndex == -1) return 1
 
         var total = 0
         for (d in 1..9) {
@@ -94,7 +83,6 @@ object SudokuGenerator {
         return total
     }
 
-    // Máscara de bits (1..9) dos dígitos ainda possíveis na célula
     private fun candidates(grid: IntArray, index: Int): Int {
         val r = index / 9
         val c = index % 9
