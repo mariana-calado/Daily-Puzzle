@@ -6,8 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +18,9 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import br.pucpr.dailypuzzle.model.Game
+import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.WinMessage
 import br.pucpr.dailypuzzle.model.GameStatus
 import br.pucpr.dailypuzzle.model.LetterStatus
 
@@ -63,27 +64,7 @@ fun CruzadinhaScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "CRUZADINHA",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Voltar para a tela inicial"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
+            AppTopBar(title = Game.CRUZADINHA_MINI.title, onBack = onBack)
         }
     ) { padding ->
         Column(
@@ -122,12 +103,7 @@ fun CruzadinhaScreen(
 
                 // Dica atual / mensagem de fim de jogo
                 if (won) {
-                    Text(
-                        text = "Você completou! 🎉",
-                        color = Color(0xFF2E7D32),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    WinMessage(text = "Você completou!")
                 } else {
                     val entry = state.currentEntry
                     Box(

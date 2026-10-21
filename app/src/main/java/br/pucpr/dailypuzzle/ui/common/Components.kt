@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import br.pucpr.dailypuzzle.R
+import br.pucpr.dailypuzzle.ui.theme.TileCorrect
 
 @Composable
 fun AppIcon(
@@ -185,5 +186,24 @@ fun StatTile(
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+@Composable
+fun WinMessage(text: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        AppIcon(icon = R.drawable.ic_celebration, tint = TileCorrect, size = 28.dp)
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            color = TileCorrect,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f, fill = false)
+        )
     }
 }

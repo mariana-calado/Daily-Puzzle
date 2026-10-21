@@ -6,8 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +17,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.GameStatus
+import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.WinMessage
 import br.pucpr.dailypuzzle.model.LetterStatus
 
 private val keyboardRows = listOf(
@@ -66,27 +67,7 @@ fun TermoScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "TERMO",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 4.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Voltar para a tela inicial"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
+            AppTopBar(title = Game.TERMO.title, onBack = onBack)
         }
     ) { padding ->
         Column(
@@ -117,12 +98,7 @@ fun TermoScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 when (state.gameStatus) {
-                    GameStatus.WON -> Text(
-                        text = "Você venceu! 🎉",
-                        color = Color(0xFF2E7D32),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    GameStatus.WON -> WinMessage(text = "Você venceu!")
                     GameStatus.LOST -> Text(
                         text = "Fim de jogo! A palavra era ${state.targetWord}",
                         color = MaterialTheme.colorScheme.error,
