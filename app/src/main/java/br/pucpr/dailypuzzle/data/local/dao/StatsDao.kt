@@ -16,6 +16,9 @@ interface StatsDao {
     @Query("SELECT * FROM game_stats WHERE gameId = :game LIMIT 1")
     suspend fun getByGame(game: Game): GameStatsEntity?
 
+    @Query("DELETE FROM game_stats WHERE gameId = :game")
+    suspend fun deleteByGame(game: Game)
+
     @Query("SELECT * FROM game_stats")
     fun observeAll(): Flow<List<GameStatsEntity>>
 }

@@ -58,4 +58,28 @@ class GameRepositoryStreakTest {
         assertEquals(1, progressDao.rows.size)
         assertEquals(true, progressDao.rows.first().won)
     }
+
+    @Test
+    fun apagarHistoricoRemoveSoOsDadosDoJogoEscolhido() = runTest {
+        repository.saveResult(Game.CACA_PALAVRAS, won = true, attempts = 3, date = DateUtils.today())
+        repository.saveResult(Game.TERMO, won = true, attempts = 2, date = DateUtils.today())
+
+        repository.clearHistory(Game.CACA_PALAVRAS)
+
+        assertEquals(null, repository.getProgress(Game.CACA_PALAVRAS, DateUtils.today()))
+        assertEquals(null, repository.getStats(Game.CACA_PALAVRAS))
+        assertEquals(true, repository.getProgress(Game.TERMO, DateUtils.today())?.won)
+        assertEquals(1, repository.getStats(Game.TERMO)?.totalWon)
+    }
+
+    @Test
+    fun depoisDeApagarOJogoPodeSerJogadoDeNovoNaqueleDia() = runTest {
+        repository.saveResult(Game.CACA_PALAVRAS, won = false, attempts = 6, date = DateUtils.today())
+        repository.clearHistory(Game.CACA_PALAVRAS)
+
+        repository.saveResult(Game.CACA_PALAVRAS, won = true, attempts = 5, date = DateUtils.today())
+
+        assertEquals(true, repository.getProgress(Game.CACA_PALAVRAS, DateUtils.today())?.won)
+        assertEquals(1, repository.getStats(Game.CACA_PALAVRAS)?.currentStreak)
+    }
 }

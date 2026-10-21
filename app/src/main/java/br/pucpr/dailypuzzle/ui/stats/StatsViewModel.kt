@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class DayStatus(
@@ -42,7 +43,7 @@ data class StatsUiState(
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
-    repository: GameRepository
+    private val repository: GameRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<StatsUiState> = combine(
@@ -88,6 +89,10 @@ class StatsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = StatsUiState()
     )
+
+    fun onClearHistory(game: Game) {
+        viewModelScope.launch { repository.clearHistory(game) }
+    }
 
     private companion object {
         const val DAYS = 7

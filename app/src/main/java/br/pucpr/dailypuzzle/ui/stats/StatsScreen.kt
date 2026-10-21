@@ -19,13 +19,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +51,7 @@ import br.pucpr.dailypuzzle.ui.common.StatTile
 import br.pucpr.dailypuzzle.ui.common.subtleBorder
 import br.pucpr.dailypuzzle.ui.theme.DailyPuzzleTheme
 import br.pucpr.dailypuzzle.ui.theme.FlameColor
+import br.pucpr.dailypuzzle.ui.theme.LossColor
 import br.pucpr.dailypuzzle.ui.theme.TileCorrect
 import br.pucpr.dailypuzzle.ui.theme.gameAccent
 import br.pucpr.dailypuzzle.ui.theme.gameIcon
@@ -60,7 +67,8 @@ fun StatsScreen(
     StatsContent(
         uiState = uiState,
         onBack = onBack,
-        onPlayDay = onPlayDay
+        onPlayDay = onPlayDay,
+        onClearHistory = viewModel::onClearHistory
     )
 }
 
@@ -68,8 +76,39 @@ fun StatsScreen(
 private fun StatsContent(
     uiState: StatsUiState,
     onBack: () -> Unit,
-    onPlayDay: (Game, String) -> Unit
+    onPlayDay: (Game, String) -> Unit,
+    onClearHistory: (Game) -> Unit
 ) {
+    var gameToClear by remember { mutableStateOf<Game?>(null) }
+
+    gameToClear?.let { game ->
+        AlertDialog(
+            onDismissRequest = { gameToClear = null },
+            title = { Text(text = "Apagar histórico?") },
+            text = {
+                Text(
+                    text = "Todos os resultados e estatísticas de ${game.title} serão removidos. " +
+                        "Esta ação não pode ser desfeita."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearHistory(game)
+                        gameToClear = null
+                    }
+                ) {
+                    Text(text = "Apagar", color = LossColor)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { gameToClear = null }) {
+                    Text(text = "Cancelar")
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = { AppTopBar(title = "Estatísticas", onBack = onBack) }
@@ -94,7 +133,8 @@ private fun StatsContent(
             items(uiState.games, key = { it.game.name }) { stats ->
                 GameStatsCard(
                     stats = stats,
-                    onPlayDay = { date -> onPlayDay(stats.game, date) }
+                    onPlayDay = { date -> onPlayDay(stats.game, date) },
+                    onClear = { gameToClear = stats.game }
                 )
             }
         }
@@ -142,7 +182,8 @@ private fun OverviewRow(uiState: StatsUiState) {
 @Composable
 private fun GameStatsCard(
     stats: GameStatsUi,
-    onPlayDay: (String) -> Unit
+    onPlayDay: (String) -> Unit,
+    onClear: () -> Unit
 ) {
     val accent = gameAccent(stats.game)
 
@@ -164,6 +205,15 @@ private fun GameStatsCard(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )
+                if (stats.totalPlayed > 0) {
+                    IconButton(onClick = onClear) {
+                        AppIcon(
+                            icon = R.drawable.ic_delete,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            contentDescription = "Apagar histórico de ${stats.game.title}"
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -306,7 +356,8 @@ private fun StatsContentPreview() {
                 totalWon = 35
             ),
             onBack = {},
-            onPlayDay = { _, _ -> }
+            onPlayDay = { _, _ -> },
+            onClearHistory = {}
         )
     }
 }

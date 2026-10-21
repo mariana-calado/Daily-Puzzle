@@ -18,6 +18,7 @@ Funcionalidades comuns a todos:
 - **Um resultado por jogo por dia:** a regra é garantida no banco (índice único em jogo + data).
 - **Jogos anteriores:** nas Estatísticas, tocar num dia vazio abre o desafio daquela data.
 - **Já jogou?** Ao abrir um jogo já concluído, o app mostra se o jogador venceu ou perdeu, com **Jogar novamente** (modo treino, que não altera a sequência) e acesso ao resultado completo.
+- **Apagar histórico:** nas Estatísticas, cada jogo tem uma lixeira (com confirmação) que remove os resultados e a estatística daquele jogo.
 - **Sequência de vitórias:** recalculada a partir do histórico, então preencher dias antigos não a distorce.
 
 ## Arquitetura
@@ -59,6 +60,15 @@ br.pucpr.dailypuzzle
 └── util               DateUtils e bancos de conteúdo diário
 ```
 
+## Persistência (Room): CRUD
+
+| Operação | Onde acontece na interface | Código |
+|---|---|---|
+| Criar | Ao terminar um jogo, o resultado é gravado | `GameRepository.saveResult` -> `ProgressDao.insert` |
+| Ler | Home (status do dia), Estatísticas, Resultado e "já jogou" | `observeTodayProgress`, `observeStats`, `getProgress` (consultas `@Query` com `Flow`) |
+| Atualizar | Estatísticas e sequência recalculadas a cada resultado | `StatsDao.upsert` |
+| Apagar | Lixeira de cada jogo nas Estatísticas | `GameRepository.clearHistory` -> `deleteByGame` nos dois DAOs |
+
 ## Decisões de design
 
 - **Room como fonte da verdade (SSOT):** a Home e as Estatísticas observam o banco por `Flow` e se atualizam sozinhas quando um jogo grava um resultado.
@@ -94,4 +104,5 @@ Pela linha de comando:
 ## Testes
 
 - `WordSearchGeneratorTest`: garante que as 6 palavras sempre cabem na grade, em 500 combinações de tema e data.
-- `GameRepositoryStreakTest`: cobre as regras da sequência (dias seguidos, dia antigo isolado, derrota e resultado duplicado).
+- `GameRepositoryStreakTest`: cobre as regras da sequência (dias seguidos, dia antigo isolado, derrota e resultado duplicado) e a exclusão do histórico.
+- `ModoTreinoTest`: usa os ViewModels reais com banco falso para conferir que vencer salva o resultado, que um jogo já jogado mostra o resultado anterior, que "Jogar novamente" não altera o que foi salvo e que dias passados usam a data da rota.

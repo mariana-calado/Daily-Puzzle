@@ -22,6 +22,10 @@ internal class FakeProgressDao : ProgressDao {
     override suspend fun getAllForGame(game: Game): List<GameProgressEntity> =
         rows.filter { it.gameId == game }.sortedByDescending { it.date }
 
+    override suspend fun deleteByGame(game: Game) {
+        rows.removeAll { it.gameId == game }
+    }
+
     override fun observeByDate(date: String): Flow<List<GameProgressEntity>> =
         flowOf(rows.filter { it.date == date })
 
@@ -38,6 +42,10 @@ internal class FakeStatsDao : StatsDao {
     }
 
     override suspend fun getByGame(game: Game): GameStatsEntity? = rows[game]
+
+    override suspend fun deleteByGame(game: Game) {
+        rows.remove(game)
+    }
 
     override fun observeAll(): Flow<List<GameStatsEntity>> = flowOf(rows.values.toList())
 }
