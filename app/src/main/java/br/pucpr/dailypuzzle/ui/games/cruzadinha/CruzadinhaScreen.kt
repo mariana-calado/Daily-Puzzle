@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameModeBanner
+import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
+import br.pucpr.dailypuzzle.ui.theme.gameAccent
 import br.pucpr.dailypuzzle.ui.common.WinMessage
 import br.pucpr.dailypuzzle.model.GameStatus
 import br.pucpr.dailypuzzle.model.LetterStatus
@@ -35,26 +38,36 @@ private val keyboardRows = listOf(
 fun CruzadinhaScreen(
     viewModel: CruzadinhaViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onAlreadyPlayed: () -> Unit
+    onShowResult: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
+    val previousResult by viewModel.previousResult.collectAsState()
+    val practice by viewModel.practice.collectAsState()
 
-    // Dia já jogado: vai direto para a tela de resultado
-    LaunchedEffect(alreadyPlayed) {
-        if (alreadyPlayed == true) onAlreadyPlayed()
-    }
 
     // Casas da palavra selecionada (para destacar)
     val wordCells = remember(state.selRow, state.selCol, state.horizontal) {
         state.currentEntry?.cells()?.toSet().orEmpty()
     }
 
-    // Enquanto verifica (ou redireciona), não mostra o tabuleiro
-    if (alreadyPlayed != false) {
+    if (alreadyPlayed == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
+        return
+    }
+
+    val previous = previousResult
+    if (previous != null && !practice) {
+        PreviousResultScreen(
+            game = Game.CRUZADINHA_MINI,
+            result = previous,
+            dateLabel = viewModel.dateLabel,
+            onBack = onBack,
+            onPlayAgain = viewModel::onPlayAgain,
+            onShowResult = onShowResult
+        )
         return
     }
 
@@ -74,6 +87,13 @@ fun CruzadinhaScreen(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            GameModeBanner(
+                practice = practice,
+                isToday = viewModel.isToday,
+                dateLabel = viewModel.dateLabel,
+                accent = gameAccent(Game.CRUZADINHA_MINI),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,

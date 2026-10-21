@@ -39,6 +39,7 @@ import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.AppIcon
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
 import br.pucpr.dailypuzzle.ui.common.StatTile
+import br.pucpr.dailypuzzle.ui.common.attemptsText
 import br.pucpr.dailypuzzle.ui.theme.DailyPuzzleTheme
 import br.pucpr.dailypuzzle.ui.theme.FlameColor
 import br.pucpr.dailypuzzle.ui.theme.LossColor
@@ -242,7 +243,7 @@ private fun OutcomeHero(uiState: ResultUiState) {
             Spacer(modifier = Modifier.height(8.dp))
             HeroChip(
                 icon = R.drawable.ic_replay,
-                text = "${uiState.attempts} tentativas"
+                text = attemptsText(uiState.game, uiState.attempts).replaceFirstChar { it.uppercase() }
             )
         }
     }

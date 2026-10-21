@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameModeBanner
+import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
+import br.pucpr.dailypuzzle.ui.theme.gameAccent
 import br.pucpr.dailypuzzle.ui.common.WinMessage
 import br.pucpr.dailypuzzle.model.SudokuState
 
@@ -28,19 +31,31 @@ import br.pucpr.dailypuzzle.model.SudokuState
 fun SudokuScreen(
     viewModel: SudokuViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onAlreadyPlayed: () -> Unit
+    onShowResult: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
+    val previousResult by viewModel.previousResult.collectAsState()
+    val practice by viewModel.practice.collectAsState()
 
-    LaunchedEffect(alreadyPlayed) {
-        if (alreadyPlayed == true) onAlreadyPlayed()
-    }
 
-    if (alreadyPlayed != false) {
+    if (alreadyPlayed == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
+        return
+    }
+
+    val previous = previousResult
+    if (previous != null && !practice) {
+        PreviousResultScreen(
+            game = Game.SUDOKU,
+            result = previous,
+            dateLabel = viewModel.dateLabel,
+            onBack = onBack,
+            onPlayAgain = viewModel::onPlayAgain,
+            onShowResult = onShowResult
+        )
         return
     }
 
@@ -65,6 +80,13 @@ fun SudokuScreen(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            GameModeBanner(
+                practice = practice,
+                isToday = viewModel.isToday,
+                dateLabel = viewModel.dateLabel,
+                accent = gameAccent(Game.SUDOKU),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,

@@ -24,6 +24,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.GameStatus
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameModeBanner
+import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
+import br.pucpr.dailypuzzle.ui.theme.gameAccent
 import br.pucpr.dailypuzzle.ui.common.WinMessage
 import br.pucpr.dailypuzzle.model.LetterStatus
 import br.pucpr.dailypuzzle.util.DailyHashtags
@@ -37,21 +40,33 @@ private val CellGap = 6.dp
 fun HashtagScreen(
     viewModel: HashtagViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onAlreadyPlayed: () -> Unit
+    onShowResult: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
+    val previousResult by viewModel.previousResult.collectAsState()
+    val practice by viewModel.practice.collectAsState()
 
-    LaunchedEffect(alreadyPlayed) {
-        if (alreadyPlayed == true) onAlreadyPlayed()
-    }
 
     val statuses = remember(state.grid) { state.puzzle.statuses(state.grid) }
 
-    if (alreadyPlayed != false) {
+    if (alreadyPlayed == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
+        return
+    }
+
+    val previous = previousResult
+    if (previous != null && !practice) {
+        PreviousResultScreen(
+            game = Game.HASHTAG,
+            result = previous,
+            dateLabel = viewModel.dateLabel,
+            onBack = onBack,
+            onPlayAgain = viewModel::onPlayAgain,
+            onShowResult = onShowResult
+        )
         return
     }
 
@@ -69,6 +84,13 @@ fun HashtagScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            GameModeBanner(
+                practice = practice,
+                isToday = viewModel.isToday,
+                dateLabel = viewModel.dateLabel,
+                accent = gameAccent(Game.HASHTAG),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             // Movimentos restantes
             Text(
                 text = if (state.movesLeft == 1) "1 movimento restante" else "${state.movesLeft} movimentos restantes",

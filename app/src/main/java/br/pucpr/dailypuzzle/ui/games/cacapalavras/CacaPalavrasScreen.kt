@@ -27,7 +27,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +46,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.pucpr.dailypuzzle.R
 import br.pucpr.dailypuzzle.data.content.WordSearchGenerator
-import br.pucpr.dailypuzzle.data.local.entity.GameProgressEntity
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.WordCell
 import br.pucpr.dailypuzzle.model.WordSearchPuzzle
@@ -55,9 +53,9 @@ import br.pucpr.dailypuzzle.ui.common.AppIcon
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
 import br.pucpr.dailypuzzle.ui.common.IconBadge
 import br.pucpr.dailypuzzle.ui.common.InfoBanner
+import br.pucpr.dailypuzzle.ui.common.PreviousResultCard
 import br.pucpr.dailypuzzle.ui.common.subtleBorder
 import br.pucpr.dailypuzzle.ui.theme.DailyPuzzleTheme
-import br.pucpr.dailypuzzle.ui.theme.LossColor
 import br.pucpr.dailypuzzle.ui.theme.OnTile
 import br.pucpr.dailypuzzle.ui.theme.TileCorrect
 import br.pucpr.dailypuzzle.ui.theme.gameAccent
@@ -111,6 +109,7 @@ private fun CacaPalavrasContent(
 
                 uiState.previousResult != null && !uiState.practice -> {
                     PreviousResultCard(
+                        game = Game.CACA_PALAVRAS,
                         result = uiState.previousResult,
                         dateLabel = uiState.dateLabel,
                         onPlayAgain = onPlayAgain,
@@ -431,81 +430,6 @@ private fun WordChip(
             textDecoration = if (found) TextDecoration.LineThrough else null,
             maxLines = 1
         )
-    }
-}
-
-@Composable
-private fun PreviousResultCard(
-    result: GameProgressEntity,
-    dateLabel: String,
-    onPlayAgain: () -> Unit,
-    onShowResult: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val won = result.won
-    val tint = if (won) TileCorrect else LossColor
-
-    Card(
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
-        ),
-        border = subtleBorder(),
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            IconBadge(
-                icon = if (won) R.drawable.ic_emoji_events else R.drawable.ic_sentiment_dissatisfied,
-                tint = tint,
-                size = 80.dp,
-                iconSize = 42.dp,
-                shape = CircleShape
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = if (won) "Você venceu!" else "Não foi dessa vez",
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = dateLabel,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = if (won) {
-                    "Você encontrou todas as palavras em ${result.attempts} tentativas."
-                } else {
-                    "Você não completou este desafio."
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = onPlayAgain,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                AppIcon(icon = R.drawable.ic_replay, size = 20.dp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Jogar novamente")
-            }
-            TextButton(
-                onClick = onShowResult,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Ver resultado completo")
-            }
-        }
     }
 }
 
