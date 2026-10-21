@@ -10,9 +10,13 @@ import androidx.navigation.navArgument
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.EmBreveScreen
 import br.pucpr.dailypuzzle.ui.games.cacapalavras.CacaPalavrasScreen
+import br.pucpr.dailypuzzle.ui.games.sudoku.SudokuScreen
+import br.pucpr.dailypuzzle.ui.games.termo.TermoScreen
 import br.pucpr.dailypuzzle.ui.home.HomeScreen
 import br.pucpr.dailypuzzle.ui.result.ResultScreen
 import br.pucpr.dailypuzzle.ui.stats.StatsScreen
+import br.pucpr.dailypuzzle.ui.games.cruzadinha.CruzadinhaScreen
+import br.pucpr.dailypuzzle.ui.games.hashtag.HashtagScreen
 
 private fun dateArgument() = listOf(
     navArgument(Routes.ARG_DATE) {
@@ -54,40 +58,59 @@ fun DailyPuzzleNavGraph(
         composable(
             route = Routes.pattern(Game.TERMO),
             arguments = dateArgument()
-        ) {
-            EmBreveScreen(
-                title = Game.TERMO.title,
-                onBack = { navController.popBackStack() }
+        ) { entry ->
+            val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
+            TermoScreen(
+                onBack = { navController.popBackStack() },
+                onAlreadyPlayed = {
+                    navController.navigate(Routes.result(Game.TERMO, date)) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
             )
         }
-
         composable(
             route = Routes.pattern(Game.HASHTAG),
             arguments = dateArgument()
-        ) {
-            EmBreveScreen(
-                title = Game.HASHTAG.title,
-                onBack = { navController.popBackStack() }
+        ) { entry ->
+            val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
+            HashtagScreen(
+                onBack = { navController.popBackStack() },
+                onAlreadyPlayed = {
+                    navController.navigate(Routes.result(Game.HASHTAG, date)) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
             )
         }
 
         composable(
             route = Routes.pattern(Game.SUDOKU),
             arguments = dateArgument()
-        ) {
-            EmBreveScreen(
-                title = Game.SUDOKU.title,
-                onBack = { navController.popBackStack() }
+        ) { entry ->
+            val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
+            SudokuScreen(
+                onBack = { navController.popBackStack() },
+                onAlreadyPlayed = {
+                    navController.navigate(Routes.result(Game.SUDOKU, date)) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
             )
         }
 
         composable(
             route = Routes.pattern(Game.CRUZADINHA_MINI),
             arguments = dateArgument()
-        ) {
-            EmBreveScreen(
-                title = Game.CRUZADINHA_MINI.title,
-                onBack = { navController.popBackStack() }
+        ) { entry ->
+            val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
+            CruzadinhaScreen(
+                onBack = { navController.popBackStack() },
+                onAlreadyPlayed = {
+                    navController.navigate(Routes.result(Game.CRUZADINHA_MINI, date)) {
+                        popUpTo(Routes.HOME)
+                    }
+                }
             )
         }
 

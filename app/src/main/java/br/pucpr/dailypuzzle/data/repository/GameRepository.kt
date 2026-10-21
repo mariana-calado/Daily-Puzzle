@@ -38,6 +38,7 @@ class GameRepository @Inject constructor(
         attempts: Int,
         date: String = DateUtils.today()
     ) {
+        if (date.isBlank()) return
         if (progressDao.getByGameAndDate(game, date) != null) return
 
         progressDao.insert(
@@ -53,7 +54,7 @@ class GameRepository @Inject constructor(
     }
 
     private suspend fun recomputeStats(game: Game) {
-        val history = progressDao.getAllForGame(game)
+        val history = progressDao.getAllForGame(game).filter { it.date.isNotBlank() }
         val wonDates = history.filter { it.won }.map { it.date }.toSet()
 
         val today = DateUtils.today()
