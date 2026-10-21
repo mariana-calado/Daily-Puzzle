@@ -5,8 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +18,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import br.pucpr.dailypuzzle.model.Game
+import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameModeBanner
+import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
+import br.pucpr.dailypuzzle.ui.theme.gameAccent
+import br.pucpr.dailypuzzle.ui.common.WinMessage
 import br.pucpr.dailypuzzle.model.SudokuState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,50 +31,45 @@ import br.pucpr.dailypuzzle.model.SudokuState
 fun SudokuScreen(
     viewModel: SudokuViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onAlreadyPlayed: () -> Unit
+    onShowResult: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
+    val previousResult by viewModel.previousResult.collectAsState()
+    val practice by viewModel.practice.collectAsState()
 
-    LaunchedEffect(alreadyPlayed) {
-        if (alreadyPlayed == true) onAlreadyPlayed()
-    }
 
-    if (alreadyPlayed != false) {
+    if (alreadyPlayed == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
+    val previous = previousResult
+    if (previous != null && !practice) {
+        PreviousResultScreen(
+            game = Game.SUDOKU,
+            result = previous,
+            dateLabel = viewModel.dateLabel,
+            onBack = onBack,
+            onPlayAgain = viewModel::onPlayAgain,
+            onShowResult = onShowResult
+        )
+        return
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "SUDOKU",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 4.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Voltar para a tela inicial"
-                        )
-                    }
-                },
+            AppTopBar(
+                title = Game.SUDOKU.title,
+                onBack = onBack,
                 actions = {
                     TextButton(onClick = { viewModel.onReset() }) {
                         Text("Reiniciar")
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
-                )
+                }
             )
         }
     ) { padding ->
@@ -81,6 +80,13 @@ fun SudokuScreen(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            GameModeBanner(
+                practice = practice,
+                isToday = viewModel.isToday,
+                dateLabel = viewModel.dateLabel,
+                accent = gameAccent(Game.SUDOKU),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
@@ -94,13 +100,7 @@ fun SudokuScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 if (state.isCompleted) {
-                    Text(
-                        text = "Parabéns! Você completou o Sudoku! 🎉",
-                        color = Color(0xFF2E7D32),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center
-                    )
+                    WinMessage(text = "Parabéns! Você completou o Sudoku!")
                 } else {
                     Text(
                         text = "Erros: ${state.mistakes}",

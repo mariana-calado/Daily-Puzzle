@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import br.pucpr.dailypuzzle.model.Game
-import br.pucpr.dailypuzzle.ui.common.EmBreveScreen
 import br.pucpr.dailypuzzle.ui.games.cacapalavras.CacaPalavrasScreen
 import br.pucpr.dailypuzzle.ui.games.sudoku.SudokuScreen
 import br.pucpr.dailypuzzle.ui.games.termo.TermoScreen
@@ -62,7 +61,7 @@ fun DailyPuzzleNavGraph(
             val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
             TermoScreen(
                 onBack = { navController.popBackStack() },
-                onAlreadyPlayed = {
+                onShowResult = {
                     navController.navigate(Routes.result(Game.TERMO, date)) {
                         popUpTo(Routes.HOME)
                     }
@@ -76,7 +75,7 @@ fun DailyPuzzleNavGraph(
             val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
             HashtagScreen(
                 onBack = { navController.popBackStack() },
-                onAlreadyPlayed = {
+                onShowResult = {
                     navController.navigate(Routes.result(Game.HASHTAG, date)) {
                         popUpTo(Routes.HOME)
                     }
@@ -91,7 +90,7 @@ fun DailyPuzzleNavGraph(
             val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
             SudokuScreen(
                 onBack = { navController.popBackStack() },
-                onAlreadyPlayed = {
+                onShowResult = {
                     navController.navigate(Routes.result(Game.SUDOKU, date)) {
                         popUpTo(Routes.HOME)
                     }
@@ -106,7 +105,7 @@ fun DailyPuzzleNavGraph(
             val date = entry.arguments?.getString(Routes.ARG_DATE).orEmpty()
             CruzadinhaScreen(
                 onBack = { navController.popBackStack() },
-                onAlreadyPlayed = {
+                onShowResult = {
                     navController.navigate(Routes.result(Game.CRUZADINHA_MINI, date)) {
                         popUpTo(Routes.HOME)
                     }

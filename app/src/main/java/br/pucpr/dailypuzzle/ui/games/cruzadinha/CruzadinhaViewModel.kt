@@ -3,6 +3,7 @@ package br.pucpr.dailypuzzle.ui.games.cruzadinha
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.pucpr.dailypuzzle.data.local.entity.GameProgressEntity
 import br.pucpr.dailypuzzle.data.repository.GameRepository
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.GameStatus
@@ -43,6 +44,15 @@ class CruzadinhaViewModel @Inject constructor(
         ?: DateUtils.today()
 
     private var resultSaved = false
+
+    private val _previousResult = MutableStateFlow<GameProgressEntity?>(null)
+    val previousResult: StateFlow<GameProgressEntity?> = _previousResult.asStateFlow()
+
+    private val _practice = MutableStateFlow(false)
+    val practice: StateFlow<Boolean> = _practice.asStateFlow()
+
+    val isToday: Boolean = date == DateUtils.today()
+    val dateLabel: String = DateUtils.label(date)
     private var checks = 0
 
     private val _alreadyPlayed = MutableStateFlow<Boolean?>(null)
@@ -50,13 +60,15 @@ class CruzadinhaViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _alreadyPlayed.value = repository.getProgress(Game.CRUZADINHA_MINI, date) != null
+            val progress = repository.getProgress(Game.CRUZADINHA_MINI, date)
+            _previousResult.value = progress
+            _alreadyPlayed.value = progress != null
         }
     }
 
     private val puzzle = DailyCruzadinhas.forDate(date)
 
-    private val _state = MutableStateFlow(
+    private fun newState(): CruzadinhaState =
         puzzle.entries.first().let { first ->
             CruzadinhaState(
                 puzzle = puzzle,
@@ -68,7 +80,8 @@ class CruzadinhaViewModel @Inject constructor(
                 horizontal = first.horizontal
             )
         }
-    )
+
+    private val _state = MutableStateFlow(newState())
     val state: StateFlow<CruzadinhaState> = _state.asStateFlow()
 
     fun onCellClick(r: Int, c: Int) {
@@ -156,6 +169,13 @@ class CruzadinhaViewModel @Inject constructor(
             if (!p.isBlock(r, c) && input[r][c] != p.solution(r, c)) return false
         }
         return true
+    }
+
+    fun onPlayAgain() {
+        resultSaved = true
+        checks = 0
+        _practice.value = true
+        _state.value = newState()
     }
 
     private fun saveResult() {

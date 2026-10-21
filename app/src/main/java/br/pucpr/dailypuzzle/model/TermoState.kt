@@ -5,9 +5,9 @@ import androidx.compose.ui.graphics.Color
 enum class LetterStatus(val color: Color) {
     EMPTY(Color.Transparent),
     TYPED(Color.DarkGray),
-    CORRECT(Color(0xFF2E7D32)), // Verde
-    PRESENT(Color(0xFFF9A825)), // Amarelo
-    ABSENT(Color(0xFF424242))   // Cinza escuro
+    CORRECT(Color(0xFF3A8F5C)),
+    PRESENT(Color(0xFFB7892B)),
+    ABSENT(Color(0xFF787C7E))
 }
 
 enum class GameStatus {

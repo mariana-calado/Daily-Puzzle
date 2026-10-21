@@ -7,8 +7,6 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,7 +21,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.GameStatus
+import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameModeBanner
+import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
+import br.pucpr.dailypuzzle.ui.theme.gameAccent
+import br.pucpr.dailypuzzle.ui.common.WinMessage
 import br.pucpr.dailypuzzle.model.LetterStatus
 import br.pucpr.dailypuzzle.util.DailyHashtags
 import br.pucpr.dailypuzzle.util.HashtagPuzzle
@@ -36,48 +40,40 @@ private val CellGap = 6.dp
 fun HashtagScreen(
     viewModel: HashtagViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onAlreadyPlayed: () -> Unit
+    onShowResult: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val alreadyPlayed by viewModel.alreadyPlayed.collectAsState()
+    val previousResult by viewModel.previousResult.collectAsState()
+    val practice by viewModel.practice.collectAsState()
 
-    LaunchedEffect(alreadyPlayed) {
-        if (alreadyPlayed == true) onAlreadyPlayed()
-    }
 
     val statuses = remember(state.grid) { state.puzzle.statuses(state.grid) }
 
-    if (alreadyPlayed != false) {
+    if (alreadyPlayed == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
+    val previous = previousResult
+    if (previous != null && !practice) {
+        PreviousResultScreen(
+            game = Game.HASHTAG,
+            result = previous,
+            dateLabel = viewModel.dateLabel,
+            onBack = onBack,
+            onPlayAgain = viewModel::onPlayAgain,
+            onShowResult = onShowResult
+        )
+        return
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "HASHTAG",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 4.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Voltar para a tela inicial"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
+            AppTopBar(title = Game.HASHTAG.title, onBack = onBack)
         }
     ) { padding ->
         Column(
@@ -88,6 +84,13 @@ fun HashtagScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            GameModeBanner(
+                practice = practice,
+                isToday = viewModel.isToday,
+                dateLabel = viewModel.dateLabel,
+                accent = gameAccent(Game.HASHTAG),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             // Movimentos restantes
             Text(
                 text = if (state.movesLeft == 1) "1 movimento restante" else "${state.movesLeft} movimentos restantes",
@@ -112,12 +115,8 @@ fun HashtagScreen(
 
             // Mensagem de fim de jogo
             when (state.gameStatus) {
-                GameStatus.WON -> Text(
-                    text = "Você venceu em ${DailyHashtags.MAX_MOVES - state.movesLeft} movimentos! 🎉",
-                    color = Color(0xFF2E7D32),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
+                GameStatus.WON -> WinMessage(
+                    text = "Você venceu em ${DailyHashtags.MAX_MOVES - state.movesLeft} movimentos!"
                 )
                 GameStatus.LOST -> Text(
                     text = "Fim de jogo! As palavras eram ${state.puzzle.words.joinToString(", ")}",

@@ -56,3 +56,8 @@ val AccentCacaPalavras = Color(0xFF2F6FB5)
 val AccentHashtag = Color(0xFF7B4FC9)
 val AccentSudoku = Color(0xFFC2703A)
 val AccentCruzadinha = Color(0xFFB4456A)
+
+val HeroStart = Color(0xFF4A55D0)
+val HeroEnd = Color(0xFF7447C4)
+val FlameColor = Color(0xFFF2711C)
+val LossColor = Color(0xFFC0463C)

@@ -3,6 +3,7 @@ package br.pucpr.dailypuzzle.ui.games.termo
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.pucpr.dailypuzzle.data.local.entity.GameProgressEntity
 import br.pucpr.dailypuzzle.data.repository.GameRepository
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.GameStatus
@@ -33,13 +34,24 @@ class TermoViewModel @Inject constructor(
 
     private var resultSaved = false
 
+    private val _previousResult = MutableStateFlow<GameProgressEntity?>(null)
+    val previousResult: StateFlow<GameProgressEntity?> = _previousResult.asStateFlow()
+
+    private val _practice = MutableStateFlow(false)
+    val practice: StateFlow<Boolean> = _practice.asStateFlow()
+
+    val isToday: Boolean = date == DateUtils.today()
+    val dateLabel: String = DateUtils.label(date)
+
 
     private val _alreadyPlayed = MutableStateFlow<Boolean?>(null)
     val alreadyPlayed: StateFlow<Boolean?> = _alreadyPlayed.asStateFlow()
 
     init {
         viewModelScope.launch {
-            _alreadyPlayed.value = repository.getProgress(Game.TERMO, date) != null
+            val progress = repository.getProgress(Game.TERMO, date)
+            _previousResult.value = progress
+            _alreadyPlayed.value = progress != null
         }
     }
 
@@ -127,6 +139,12 @@ class TermoViewModel @Inject constructor(
                 attempts = currentRow + 1
             )
         }
+    }
+
+    fun onPlayAgain() {
+        resultSaved = true
+        _practice.value = true
+        _state.value = TermoState(targetWord = DailyWords.forDate(date))
     }
 
     private fun saveResult(won: Boolean, attempts: Int) {

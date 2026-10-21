@@ -3,24 +3,20 @@ package br.pucpr.dailypuzzle.ui.games.cacapalavras
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.pucpr.dailypuzzle.data.content.WordSearchGenerator
-import br.pucpr.dailypuzzle.data.content.WordSearchLoader
 import br.pucpr.dailypuzzle.data.local.entity.GameProgressEntity
 import br.pucpr.dailypuzzle.data.repository.GameRepository
-import br.pucpr.dailypuzzle.model.DailySeed
+import br.pucpr.dailypuzzle.data.repository.WordSearchRepository
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.WordCell
 import br.pucpr.dailypuzzle.model.WordSearchPuzzle
 import br.pucpr.dailypuzzle.navigation.Routes
 import br.pucpr.dailypuzzle.util.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class CacaPalavrasUiState(
@@ -41,7 +37,7 @@ data class CacaPalavrasUiState(
 @HiltViewModel
 class CacaPalavrasViewModel @Inject constructor(
     private val repository: GameRepository,
-    private val loader: WordSearchLoader,
+    private val wordSearchRepository: WordSearchRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -60,16 +56,7 @@ class CacaPalavrasViewModel @Inject constructor(
         viewModelScope.launch {
             val previousResult = repository.getProgress(Game.CACA_PALAVRAS, date)
 
-            val puzzle = withContext(Dispatchers.IO) {
-                val banks = loader.loadBanks()
-                val bank = banks[DailySeed.indexFor(date, banks.size)]
-                WordSearchGenerator.generate(
-                    theme = bank.theme,
-                    words = bank.words.take(WORDS_PER_PUZZLE),
-                    size = GRID_SIZE,
-                    random = DailySeed.randomFor(date)
-                )
-            }
+            val puzzle = wordSearchRepository.getPuzzle(date)
 
             _uiState.update { state ->
                 state.copy(
@@ -142,10 +129,5 @@ class CacaPalavrasViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    private companion object {
-        const val GRID_SIZE = 8
-        const val WORDS_PER_PUZZLE = 6
     }
 }

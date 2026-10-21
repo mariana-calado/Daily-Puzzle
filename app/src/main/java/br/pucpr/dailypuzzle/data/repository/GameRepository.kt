@@ -53,6 +53,11 @@ class GameRepository @Inject constructor(
         recomputeStats(game)
     }
 
+    suspend fun clearHistory(game: Game) {
+        progressDao.deleteByGame(game)
+        statsDao.deleteByGame(game)
+    }
+
     private suspend fun recomputeStats(game: Game) {
         val history = progressDao.getAllForGame(game).filter { it.date.isNotBlank() }
         val wonDates = history.filter { it.won }.map { it.date }.toSet()

@@ -20,6 +20,9 @@ interface ProgressDao {
     @Query("SELECT * FROM game_progress WHERE gameId = :game ORDER BY date DESC")
     suspend fun getAllForGame(game: Game): List<GameProgressEntity>
 
+    @Query("DELETE FROM game_progress WHERE gameId = :game")
+    suspend fun deleteByGame(game: Game)
+
     @Query("SELECT * FROM game_progress WHERE date = :date")
     fun observeByDate(date: String): Flow<List<GameProgressEntity>>
 
