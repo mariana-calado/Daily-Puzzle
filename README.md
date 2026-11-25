@@ -2,6 +2,22 @@
 
 Hub de mini-jogos diários de raciocínio e palavras, no estilo Wordle / NYT Games. Todo dia há um desafio novo em cada jogo, igual para todos os jogadores, com sequência (streak), estatísticas e histórico. O app funciona 100% offline.
 
+## Demonstração
+
+<p align="center">
+  <img src="docs/demo.gif" alt="Demonstração do Daily Puzzle" width="300">
+</p>
+
+Vídeo completo (MP4): [docs/demo.mp4](docs/demo.mp4)
+
+| Início | Termo (modo treino) | Caça-palavras |
+|---|---|---|
+| <img src="docs/home.png" width="240"> | <img src="docs/termo-treino.png" width="240"> | <img src="docs/caca-palavras.png" width="240"> |
+
+| Já jogou hoje | Estatísticas |
+|---|---|
+| <img src="docs/ja-jogou.png" width="240"> | <img src="docs/estatisticas.png" width="240"> |
+
 ## Baixar o app
 
 O APK para Android fica na página de [Releases](https://github.com/mariana-calado/Daily-Puzzle/releases/latest).
