@@ -2,6 +2,16 @@
 
 Hub de mini-jogos diários de raciocínio e palavras, no estilo Wordle / NYT Games. Todo dia há um desafio novo em cada jogo, igual para todos os jogadores, com sequência (streak), estatísticas e histórico. O app funciona 100% offline.
 
+## Baixar o app
+
+O APK para Android fica na página de [Releases](https://github.com/mariana-calado/Daily-Puzzle/releases/latest).
+
+1. No celular, abra a página acima e baixe o arquivo `DailyPuzzle-v1.0.apk`.
+2. Abra o arquivo baixado. Se o Android avisar que a instalação de apps desconhecidos está bloqueada, toque em **Configurações** e permita para o navegador ou o gerenciador de arquivos que você usou.
+3. Se o Play Protect mostrar um aviso, toque em **Instalar mesmo assim**. Isso acontece porque o app não vem da Play Store.
+
+Requer Android 8.0 (API 26) ou superior. Não precisa de internet.
+
 ## Jogos
 
 | Jogo | Como funciona |
