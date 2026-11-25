@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameEndCard
+import br.pucpr.dailypuzzle.ui.common.GameHeader
 import br.pucpr.dailypuzzle.ui.common.GameModeBanner
 import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
 import br.pucpr.dailypuzzle.ui.theme.gameAccent
@@ -94,6 +96,17 @@ fun CruzadinhaScreen(
                 accent = gameAccent(Game.CRUZADINHA_MINI),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+            val totalLetters = (0 until puzzle.height).sumOf { r ->
+                (0 until puzzle.width).count { c -> !puzzle.isBlock(r, c) }
+            }
+            val filledLetters = state.input.sumOf { row -> row.count { it != '#' && it != ' ' } }
+            GameHeader(
+                game = Game.CRUZADINHA_MINI,
+                label = "PREENCHIDO",
+                title = "$filledLetters de $totalLetters letras",
+                pill = "${puzzle.entries.size} dicas",
+                progress = filledLetters / totalLetters.toFloat()
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
@@ -121,10 +134,7 @@ fun CruzadinhaScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Dica atual / mensagem de fim de jogo
-                if (won) {
-                    WinMessage(text = "Você completou!")
-                } else {
+                if (!won) {
                     val entry = state.currentEntry
                     Box(
                         modifier = Modifier
@@ -149,39 +159,54 @@ fun CruzadinhaScreen(
                 }
             }
 
-            // Teclado
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                keyboardRows.forEachIndexed { index, letters ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
-                    ) {
-                        if (index == keyboardRows.lastIndex) {
-                            KeyButton(
-                                label = "CHECAR",
-                                weight = 1.6f,
-                                fontSize = 11.sp,
-                                onClick = { viewModel.onCheck() }
-                            )
-                        }
-                        letters.forEach { c ->
-                            KeyButton(label = c.toString(), onClick = { viewModel.onKeyPress(c) })
-                        }
-                        if (index == keyboardRows.lastIndex) {
-                            KeyButton(
-                                label = "⌫",
-                                weight = 1.6f,
-                                fontSize = 18.sp,
-                                onClick = { viewModel.onBackspace() }
-                            )
+            if (!won) {
+                // Teclado
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    keyboardRows.forEachIndexed { index, letters ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
+                        ) {
+                            if (index == keyboardRows.lastIndex) {
+                                KeyButton(
+                                    label = "CHECAR",
+                                    weight = 1.6f,
+                                    fontSize = 11.sp,
+                                    onClick = { viewModel.onCheck() }
+                                )
+                            }
+                            letters.forEach { c ->
+                                KeyButton(label = c.toString(), onClick = { viewModel.onKeyPress(c) })
+                            }
+                            if (index == keyboardRows.lastIndex) {
+                                KeyButton(
+                                    label = "⌫",
+                                    weight = 1.6f,
+                                    fontSize = 18.sp,
+                                    onClick = { viewModel.onBackspace() }
+                                )
+                            }
                         }
                     }
                 }
+            } else {
+                GameEndCard(
+                    game = Game.CRUZADINHA_MINI,
+                    won = true,
+                    practice = practice,
+                    winText = "Você completou a cruzadinha.",
+                    loseText = "Você não completou este desafio.",
+                    onShowResult = onShowResult,
+                    onBack = onBack,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
             }
         }
     }

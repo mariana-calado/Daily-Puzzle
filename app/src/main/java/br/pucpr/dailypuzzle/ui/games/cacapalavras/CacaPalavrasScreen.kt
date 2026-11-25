@@ -52,7 +52,10 @@ import br.pucpr.dailypuzzle.model.WordSearchPuzzle
 import br.pucpr.dailypuzzle.ui.common.AppIcon
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
 import br.pucpr.dailypuzzle.ui.common.IconBadge
+import br.pucpr.dailypuzzle.ui.common.GameEndCard
+import br.pucpr.dailypuzzle.ui.common.GameHeader
 import br.pucpr.dailypuzzle.ui.common.InfoBanner
+import br.pucpr.dailypuzzle.ui.common.winSummary
 import br.pucpr.dailypuzzle.ui.common.PreviousResultCard
 import br.pucpr.dailypuzzle.ui.common.subtleBorder
 import br.pucpr.dailypuzzle.ui.theme.DailyPuzzleTheme
@@ -172,56 +175,13 @@ private fun GameBoard(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconBadge(icon = gameIcon(Game.CACA_PALAVRAS), tint = accent, size = 46.dp)
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "TEMA DO DIA",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = puzzle.theme,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(accent.copy(alpha = 0.14f))
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = "$found/$total",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = accent
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(fraction)
-                    .clip(CircleShape)
-                    .background(accent)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(18.dp))
+        GameHeader(
+            game = Game.CACA_PALAVRAS,
+            label = "TEMA DO DIA",
+            title = puzzle.theme,
+            pill = "$found/$total",
+            progress = fraction
+        )
 
         WordGrid(
             puzzle = puzzle,
@@ -265,29 +225,16 @@ private fun GameBoard(
 
         if (uiState.finished) {
             Spacer(modifier = Modifier.height(12.dp))
-            if (uiState.practice) {
-                MessageCard(
-                    icon = R.drawable.ic_check_circle,
-                    tint = accent,
-                    title = "Treino concluído!",
-                    message = "Este resultado não altera sua sequência.",
-                    buttonLabel = "Voltar ao início",
-                    buttonIcon = R.drawable.ic_home,
-                    onButtonClick = onBack,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            } else {
-                MessageCard(
-                    icon = R.drawable.ic_celebration,
-                    tint = TileCorrect,
-                    title = "Parabéns!",
-                    message = "Você encontrou todas as palavras em ${uiState.attempts} tentativas.",
-                    buttonLabel = "Ver resultado",
-                    buttonIcon = R.drawable.ic_emoji_events,
-                    onButtonClick = onShowResult,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            GameEndCard(
+                game = Game.CACA_PALAVRAS,
+                won = true,
+                practice = uiState.practice,
+                winText = winSummary(Game.CACA_PALAVRAS, uiState.attempts),
+                loseText = "Você não completou este desafio.",
+                onShowResult = onShowResult,
+                onBack = onBack,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -430,62 +377,6 @@ private fun WordChip(
             textDecoration = if (found) TextDecoration.LineThrough else null,
             maxLines = 1
         )
-    }
-}
-
-@Composable
-private fun MessageCard(
-    @DrawableRes icon: Int,
-    tint: Color,
-    title: String,
-    message: String,
-    buttonLabel: String,
-    @DrawableRes buttonIcon: Int,
-    onButtonClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
-        ),
-        border = subtleBorder(),
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            IconBadge(
-                icon = icon,
-                tint = tint,
-                size = 68.dp,
-                iconSize = 36.dp,
-                shape = CircleShape
-            )
-            Spacer(modifier = Modifier.height(14.dp))
-            Text(text = title, style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Button(
-                onClick = onButtonClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                AppIcon(icon = buttonIcon, size = 20.dp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = buttonLabel)
-            }
-        }
     }
 }
 

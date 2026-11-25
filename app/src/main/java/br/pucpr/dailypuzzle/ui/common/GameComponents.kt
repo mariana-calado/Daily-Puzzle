@@ -1,6 +1,12 @@
 package br.pucpr.dailypuzzle.ui.common
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.draw.clip
+import br.pucpr.dailypuzzle.ui.theme.gameAccent
+import br.pucpr.dailypuzzle.ui.theme.gameIcon
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -180,6 +186,150 @@ fun PreviousResultCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Ver resultado completo")
+            }
+        }
+    }
+}
+
+@Composable
+fun GameHeader(
+    game: Game,
+    label: String,
+    title: String,
+    pill: String,
+    progress: Float?,
+    modifier: Modifier = Modifier
+) {
+    val accent = gameAccent(game)
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconBadge(icon = gameIcon(game), tint = accent, size = 46.dp)
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(accent.copy(alpha = 0.14f))
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = pill,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = accent
+                )
+            }
+        }
+
+        if (progress != null) {
+            Spacer(modifier = Modifier.height(14.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(progress.coerceIn(0f, 1f))
+                        .clip(CircleShape)
+                        .background(accent)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun GameEndCard(
+    game: Game,
+    won: Boolean,
+    practice: Boolean,
+    winText: String,
+    loseText: String,
+    onShowResult: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val tint = when {
+        !won -> LossColor
+        practice -> gameAccent(game)
+        else -> TileCorrect
+    }
+    val icon = when {
+        !won -> R.drawable.ic_sentiment_dissatisfied
+        practice -> R.drawable.ic_check_circle
+        else -> R.drawable.ic_celebration
+    }
+    val title = when {
+        practice && won -> "Treino concluído!"
+        practice -> "Fim do treino"
+        won -> "Parabéns!"
+        else -> "Não foi dessa vez"
+    }
+    val message = (if (won) winText else loseText) +
+        if (practice) " Este resultado não altera sua sequência." else ""
+
+    Card(
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ),
+        border = subtleBorder(),
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconBadge(
+                icon = icon,
+                tint = tint,
+                size = 60.dp,
+                iconSize = 32.dp,
+                shape = CircleShape
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = title, style = MaterialTheme.typography.headlineSmall)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = if (practice) onBack else onShowResult,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                AppIcon(
+                    icon = if (practice) R.drawable.ic_home else R.drawable.ic_emoji_events,
+                    size = 20.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = if (practice) "Voltar ao início" else "Ver resultado")
             }
         }
     }

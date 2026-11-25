@@ -24,6 +24,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.GameStatus
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameEndCard
+import br.pucpr.dailypuzzle.ui.common.GameHeader
+import br.pucpr.dailypuzzle.ui.common.winSummary
 import br.pucpr.dailypuzzle.ui.common.GameModeBanner
 import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
 import br.pucpr.dailypuzzle.ui.theme.gameAccent
@@ -91,46 +94,52 @@ fun HashtagScreen(
                 accent = gameAccent(Game.HASHTAG),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            // Movimentos restantes
-            Text(
-                text = if (state.movesLeft == 1) "1 movimento restante" else "${state.movesLeft} movimentos restantes",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
+            GameHeader(
+                game = Game.HASHTAG,
+                label = "MOVIMENTOS",
+                title = if (state.movesLeft == 1) "1 restante" else "${state.movesLeft} restantes",
+                pill = "${DailyHashtags.MAX_MOVES - state.movesLeft}/${DailyHashtags.MAX_MOVES}",
+                progress = (DailyHashtags.MAX_MOVES - state.movesLeft) / DailyHashtags.MAX_MOVES.toFloat()
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            HashtagBoard(
-                puzzle = state.puzzle,
-                grid = state.grid,
-                statuses = statuses,
-                selected = state.selected,
-                onTap = viewModel::onCellTap,
-                onDragStart = viewModel::onDragStart,
-                onDrop = viewModel::onDrop
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Mensagem de fim de jogo
-            when (state.gameStatus) {
-                GameStatus.WON -> WinMessage(
-                    text = "Você venceu em ${DailyHashtags.MAX_MOVES - state.movesLeft} movimentos!"
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                HashtagBoard(
+                    puzzle = state.puzzle,
+                    grid = state.grid,
+                    statuses = statuses,
+                    selected = state.selected,
+                    onTap = viewModel::onCellTap,
+                    onDragStart = viewModel::onDragStart,
+                    onDrop = viewModel::onDrop
                 )
-                GameStatus.LOST -> Text(
-                    text = "Fim de jogo! As palavras eram ${state.puzzle.words.joinToString(", ")}",
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
-                GameStatus.PLAYING -> Text(
-                    text = "Toque ou arraste para trocar as letras",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (state.gameStatus == GameStatus.PLAYING) {
+                    Text(
+                        text = "Toque ou arraste para trocar as letras",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    GameEndCard(
+                        game = Game.HASHTAG,
+                        won = state.gameStatus == GameStatus.WON,
+                        practice = practice,
+                        winText = winSummary(Game.HASHTAG, DailyHashtags.MAX_MOVES - state.movesLeft),
+                        loseText = "As palavras eram ${state.puzzle.words.joinToString(", ")}.",
+                        onShowResult = onShowResult,
+                        onBack = onBack,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }

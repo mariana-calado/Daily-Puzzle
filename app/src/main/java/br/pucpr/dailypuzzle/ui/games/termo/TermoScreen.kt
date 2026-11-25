@@ -20,6 +20,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.model.GameStatus
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameEndCard
+import br.pucpr.dailypuzzle.ui.common.GameHeader
+import br.pucpr.dailypuzzle.ui.common.winSummary
 import br.pucpr.dailypuzzle.ui.common.GameModeBanner
 import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
 import br.pucpr.dailypuzzle.ui.theme.gameAccent
@@ -99,6 +102,14 @@ fun TermoScreen(
                 accent = gameAccent(Game.TERMO),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+            val attemptsUsed = if (state.gameStatus == GameStatus.PLAYING) state.currentRow else state.currentRow + 1
+            GameHeader(
+                game = Game.TERMO,
+                label = "PALAVRA DE 5 LETRAS",
+                title = "Tentativa ${minOf(attemptsUsed + 1, 6)} de 6",
+                pill = "$attemptsUsed/6",
+                progress = attemptsUsed / 6f
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
@@ -117,59 +128,61 @@ fun TermoScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                when (state.gameStatus) {
-                    GameStatus.WON -> WinMessage(text = "Você venceu!")
-                    GameStatus.LOST -> Text(
-                        text = "Fim de jogo! A palavra era ${state.targetWord}",
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center
-                    )
-                    GameStatus.PLAYING -> Spacer(modifier = Modifier.height(28.dp))
-                }
             }
 
-            // Teclado
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                keyboardRows.forEachIndexed { index, letters ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
-                    ) {
+            if (state.gameStatus == GameStatus.PLAYING) {
+                // Teclado
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    keyboardRows.forEachIndexed { index, letters ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
+                        ) {
 
-                        if (index == keyboardRows.lastIndex) {
-                            KeyButton(
-                                label = "ENTER",
-                                weight = 1.6f,
-                                fontSize = 11.sp,
-                                onClick = { viewModel.onEnter() }
-                            )
-                        }
-                        letters.forEach { c ->
-                            KeyButton(
-                                label = c.toString(),
-                                status = keyStatuses[c],
-                                onClick = { viewModel.onKeyPress(c) }
-                            )
-                        }
-                        if (index == keyboardRows.lastIndex) {
-                            KeyButton(
-                                label = "⌫",
-                                weight = 1.6f,
-                                fontSize = 18.sp,
-                                onClick = { viewModel.onBackspace() }
-                            )
+                            if (index == keyboardRows.lastIndex) {
+                                KeyButton(
+                                    label = "ENTER",
+                                    weight = 1.6f,
+                                    fontSize = 11.sp,
+                                    onClick = { viewModel.onEnter() }
+                                )
+                            }
+                            letters.forEach { c ->
+                                KeyButton(
+                                    label = c.toString(),
+                                    status = keyStatuses[c],
+                                    onClick = { viewModel.onKeyPress(c) }
+                                )
+                            }
+                            if (index == keyboardRows.lastIndex) {
+                                KeyButton(
+                                    label = "⌫",
+                                    weight = 1.6f,
+                                    fontSize = 18.sp,
+                                    onClick = { viewModel.onBackspace() }
+                                )
+                            }
                         }
                     }
                 }
+            } else {
+                GameEndCard(
+                    game = Game.TERMO,
+                    won = state.gameStatus == GameStatus.WON,
+                    practice = practice,
+                    winText = winSummary(Game.TERMO, state.currentRow + 1),
+                    loseText = "A palavra era ${state.targetWord}.",
+                    onShowResult = onShowResult,
+                    onBack = onBack,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
             }
         }
     }

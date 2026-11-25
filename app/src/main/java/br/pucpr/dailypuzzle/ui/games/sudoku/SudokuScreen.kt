@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.pucpr.dailypuzzle.model.Game
 import br.pucpr.dailypuzzle.ui.common.AppTopBar
+import br.pucpr.dailypuzzle.ui.common.GameEndCard
+import br.pucpr.dailypuzzle.ui.common.GameHeader
+import br.pucpr.dailypuzzle.ui.common.winSummary
 import br.pucpr.dailypuzzle.ui.common.GameModeBanner
 import br.pucpr.dailypuzzle.ui.common.PreviousResultScreen
 import br.pucpr.dailypuzzle.ui.theme.gameAccent
@@ -87,6 +90,14 @@ fun SudokuScreen(
                 accent = gameAccent(Game.SUDOKU),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+            val filledCells = state.grid.sumOf { row -> row.count { it.value != 0 } }
+            GameHeader(
+                game = Game.SUDOKU,
+                label = "PREENCHIDO",
+                title = "$filledCells de 81",
+                pill = "Erros: ${state.mistakes}",
+                progress = filledCells / 81f
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
@@ -97,44 +108,47 @@ fun SudokuScreen(
                     onCellClick = { r, c -> viewModel.onCellSelected(r, c) }
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                if (state.isCompleted) {
-                    WinMessage(text = "Parabéns! Você completou o Sudoku!")
-                } else {
-                    Text(
-                        text = "Erros: ${state.mistakes}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
             }
 
-            // Teclado numérico
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+            if (!state.isCompleted) {
+                // Teclado numérico
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    (1..5).forEach { n ->
-                        NumberKey(label = n.toString(), onClick = { viewModel.onNumberInput(n) })
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        (1..5).forEach { n ->
+                            NumberKey(label = n.toString(), onClick = { viewModel.onNumberInput(n) })
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        (6..9).forEach { n ->
+                            NumberKey(label = n.toString(), onClick = { viewModel.onNumberInput(n) })
+                        }
+                        NumberKey(label = "⌫", fontSize = 18.sp, onClick = { viewModel.onErase() })
                     }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    (6..9).forEach { n ->
-                        NumberKey(label = n.toString(), onClick = { viewModel.onNumberInput(n) })
-                    }
-                    NumberKey(label = "⌫", fontSize = 18.sp, onClick = { viewModel.onErase() })
-                }
+            } else {
+                GameEndCard(
+                    game = Game.SUDOKU,
+                    won = true,
+                    practice = practice,
+                    winText = winSummary(Game.SUDOKU, state.mistakes),
+                    loseText = "Você não completou este desafio.",
+                    onShowResult = onShowResult,
+                    onBack = onBack,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
             }
         }
     }
